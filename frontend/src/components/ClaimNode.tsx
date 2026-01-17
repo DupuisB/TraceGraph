@@ -70,6 +70,17 @@ const ClaimNode = ({ data }: NodeProps) => {
                 <span className="opacity-80 line-clamp-3">
                   {data.verification_reason}
                 </span>
+                {data.source_url && (
+                  <a
+                    href={data.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block mt-2 text-indigo-400 hover:text-indigo-300 underline truncate"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Source: {new URL(data.source_url).hostname}
+                  </a>
+                )}
               </div>
             )}
           </div>

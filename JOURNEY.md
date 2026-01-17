@@ -104,3 +104,11 @@ We paused to analyze three key papers (DeVerna et al. 2024, etc.).
 
     Zhang, Y., et al. (2024). Generative LLMs in automated fact-checking: A survey. *arXiv preprint arXiv:2407.02351*.
 </details>
+---
+
+## 9. Phase 2: The Agentic Shift (V2)
+**Goal:** Transition from a "Closed Context" validator to an "Open World" researcher.
+**Strategy:** Leverage Mistral's **Agents API** and **Native Web Search**.
+*   **Problem:** The MVP cannot verify external facts (e.g., "Paris GDP in 2024").
+*   **Solution:** We are replacing the static "Auditor" with an autonomous "Auditor Agent" capable of using tools.
+*   **Why Native?** Using Mistral's built-in web search avoids the complexity/cost of 3rd party scrapers (Tavily/Serper) and keeps the stack unified.

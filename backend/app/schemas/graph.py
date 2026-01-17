@@ -36,6 +36,9 @@ class Node(BaseModel):
     verification_quote: str | None = Field(
         default=None, description="Exact quote supporting the verification verdict"
     )
+    source_url: str | None = Field(
+        default=None, description="URL of the external source if found"
+    )
 
 
 class Edge(BaseModel):

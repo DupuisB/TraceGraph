@@ -9,12 +9,12 @@ from app.schemas.graph import (
     NodeType,
     RelationType,
 )
-from main import app, get_mistral_service
+from main import app, get_agent_service, get_mistral_service
 
 client = TestClient(app)
 
 
-# --- Mock Service ---
+# --- Mock Services ---
 class MockMistralService:
     async def analyze_text(self, text: str) -> AnalysisResponse:
         # Return a deterministic graph for testing
@@ -45,12 +45,26 @@ class MockMistralService:
         return {"status": "verified", "reason": "Mock verification reason"}
 
 
+class MockAgentService:
+    async def verify_claim_with_agent(self, claim_text: str, context: str) -> dict:
+        return {
+            "status": "verified",
+            "reason": "Mock agent verification",
+            "quote": "Mock quote",
+            "source_url": "http://mock-source.com",
+        }
+
+
 # --- Dependency Override Fixture ---
-@pytest.fixture(name="mock_mistral")
-def mock_mistral_fixture():
-    mock_service = MockMistralService()
-    app.dependency_overrides[get_mistral_service] = lambda: mock_service
-    yield mock_service
+@pytest.fixture(name="mock_services")
+def mock_services_fixture():
+    mock_mistral = MockMistralService()
+    mock_agent = MockAgentService()
+
+    app.dependency_overrides[get_mistral_service] = lambda: mock_mistral
+    app.dependency_overrides[get_agent_service] = lambda: mock_agent
+
+    yield
     app.dependency_overrides = {}
 
 
@@ -63,7 +77,7 @@ def test_read_root():
     assert response.json() == {"message": "TraceGraph API is running"}
 
 
-def test_analyze_flow(mock_mistral):
+def test_analyze_flow(mock_services):
     # 1. POST /analyze
     response = client.post("/analyze", json={"text_blob": "This is a test input text."})
     assert response.status_code == 200
@@ -76,7 +90,7 @@ def test_analyze_flow(mock_mistral):
     assert len(graph["edges"]) == 1
 
 
-def test_get_graph_after_analysis(mock_mistral):
+def test_get_graph_after_analysis(mock_services):
     # 1. Trigger analysis to populate store
     client.post("/analyze", json={"text_blob": "Poll test"})
 
@@ -94,7 +108,9 @@ def test_get_graph_after_analysis(mock_mistral):
 
     claim_node = next(n for n in graph["nodes"] if n["type"] == "claim")
     assert claim_node["verification_status"] == "verified"
-    assert claim_node["verification_reason"] == "Mock verification reason"
+    assert claim_node["verification_reason"] == "Mock agent verification"
+    assert claim_node["verification_quote"] == "Mock quote"
+    assert claim_node["source_url"] == "http://mock-source.com"
 
 
 def test_get_non_existent_graph():

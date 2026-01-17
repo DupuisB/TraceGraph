@@ -54,6 +54,7 @@ interface GraphNode {
     | "needs_review";
   verification_reason?: string;
   verification_quote?: string;
+  source_url?: string;
   isOrphaned?: boolean;
 }
 
@@ -295,6 +296,7 @@ const Flow = () => {
                   verification_status: updatedNode.verification_status,
                   verification_reason: updatedNode.verification_reason,
                   verification_quote: updatedNode.verification_quote,
+                  source_url: updatedNode.source_url,
                 },
               };
             }

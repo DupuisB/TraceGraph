@@ -12,6 +12,7 @@ from app.schemas.graph import (
     GraphStructure,
     VerificationStatus,
 )
+from app.services.agent_service import AgentService
 from app.services.mistral_service import MistralService
 
 load_dotenv(find_dotenv())
@@ -36,17 +37,23 @@ def get_mistral_service() -> MistralService:
     return MistralService()
 
 
+def get_agent_service() -> AgentService:
+    return AgentService()
+
+
 async def process_verification_tasks(
-    graph: GraphStructure, service: MistralService, context: str
+    graph: GraphStructure, agent_service: AgentService, context: str
 ):
-    """Background task to verify all claims in the graph in parallel."""
-    print(f"--> [Auditor] Starting verification ({len(graph.nodes)} nodes)...")
+    """Background task to verify all claims in the graph in parallel using Agents."""
+    print(f"--> [Auditor Agent] Starting verification ({len(graph.nodes)} nodes)...")
 
     # Identify claims
     claims = [node for node in graph.nodes if node.type == "claim"]
 
     # Initialize verification tasks
-    tasks = [service.verify_claim(claim.text, context) for claim in claims]
+    tasks = [
+        agent_service.verify_claim_with_agent(claim.text, context) for claim in claims
+    ]
 
     # Execute efficiently in parallel
     results = await asyncio.gather(*tasks)
@@ -55,6 +62,7 @@ async def process_verification_tasks(
         status_str = result.get("status", "needs_review").lower()
         reason = result.get("reason", "")
         quote = result.get("quote", None)
+        source_url = result.get("source_url", None)
 
         try:
             claim.verification_status = VerificationStatus(status_str)
@@ -64,8 +72,10 @@ async def process_verification_tasks(
 
         claim.verification_reason = reason
         claim.verification_quote = quote
+        claim.source_url = source_url
         print(
-            f"    - Verified '{claim.id}': {claim.verification_status} (Quote: {quote})"
+            f"    - Verified '{claim.id}': {claim.verification_status} "
+            f"(Source: {source_url})"
         )
 
     # Update the store with the fully verified graph
@@ -84,6 +94,7 @@ async def analyze(
     request: AnalysisRequest,
     background_tasks: BackgroundTasks,
     service: Annotated[MistralService, Depends(get_mistral_service)],
+    agent_service: Annotated[AgentService, Depends(get_agent_service)],
 ):
     """Analyze a text blob and return a logic graph."""
     print(
@@ -103,7 +114,7 @@ async def analyze(
         background_tasks.add_task(
             process_verification_tasks,
             response.graph_structure,
-            service,
+            agent_service,
             request.text_blob,
         )
 
