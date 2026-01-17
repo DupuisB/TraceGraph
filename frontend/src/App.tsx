@@ -148,7 +148,7 @@ const Flow = () => {
   }, [edges]);
 
   const onNodeMouseEnter = useCallback(
-    (_: any, node: Node) => {
+    (_: React.MouseEvent, node: Node) => {
       if (!selectedNode) {
         // Only hover if no selection
         setHoveredNode(node);
@@ -163,7 +163,7 @@ const Flow = () => {
     }
   }, [selectedNode]);
 
-  const onNodeClick = useCallback((_: any, node: Node) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
     setHoveredNode(null); // Clear hover to avoid conflict
     setIsEditing(false); // Reset edit mode
@@ -278,7 +278,9 @@ const Flow = () => {
         // Let's just update the node data (verification status) without moving them.
         setNodes((nodes) =>
           nodes.map((n) => {
-            const updatedNode = data.nodes.find((un: any) => un.id === n.id);
+            const updatedNode = data.nodes.find(
+              (un: GraphNode) => un.id === n.id,
+            );
             if (updatedNode) {
               return {
                 ...n,
@@ -307,7 +309,10 @@ const Flow = () => {
     }, 2000);
   };
 
-  const updateGraphWithLayout = async (structure: any) => {
+  const updateGraphWithLayout = async (structure: {
+    nodes: GraphNode[];
+    edges: GraphEdge[];
+  }) => {
     const rawNodes = structure.nodes.map((n: GraphNode) => ({
       id: n.id,
       type: n.type,
