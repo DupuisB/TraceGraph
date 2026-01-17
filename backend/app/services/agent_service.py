@@ -20,7 +20,8 @@ class AgentService:
         Retrieves the Auditor Agent ID, or creates it if it doesn't exist.
         """
         # List existing agents (Beta API for management)
-        agents = await self.client.beta.agents.list_async()
+        # Passing page_size and metadata={} to avoid SDK UNSET bug
+        agents = await self.client.beta.agents.list_async(page_size=100, metadata={})
 
         for agent in agents:
             if agent.name == self.agent_name:
