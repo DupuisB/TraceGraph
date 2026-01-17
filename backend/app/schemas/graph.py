@@ -19,7 +19,8 @@ class VerificationStatus(str, Enum):
     PENDING = "pending"
     VERIFIED = "verified"
     REFUTED = "refuted"
-    UNCERTAIN = "uncertain"
+    UNCERTAIN = "uncertain"  # Deprecated in favor of needs_review
+    NEEDS_REVIEW = "needs_review"
 
 
 class Node(BaseModel):
@@ -32,6 +33,9 @@ class Node(BaseModel):
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
     verification_status: VerificationStatus = Field(default=VerificationStatus.PENDING)
     verification_reason: str | None = Field(default=None)
+    verification_quote: str | None = Field(
+        default=None, description="Exact quote supporting the verification verdict"
+    )
 
 
 class Edge(BaseModel):

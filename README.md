@@ -4,11 +4,17 @@
 
 ![Graph Visualization](https://placehold.co/800x400?text=Graph+Visualization+Placeholder)
 
-## 💡 Product Philosophy
+## 💡 Product Philosophy: The "Logic Auditor"
 
-> **Designed for the 'Forensic Analyst' persona—prioritizing transparency over chat fluidity.**
+> **Pivot: From "Fact Checker" to "Logic & Consistency Auditor"**
 
-LLMs are often black boxes. TraceGraph is a "Glass Box." We move Mistral from a general-purpose chatbot to a specialized **Logic Engine** for professional intelligence (Legal, Audit, Financial Analysis).
+Based on recent research (DeVerna et al. 2024, *Frontiers in AI*), we identified key risks in AI-assisted verification:
+1.  **The Backfire Effect:** Labeling claims as "Uncertain" explicitly increases user belief in misinformation.
+    *   *TraceGraph Solution:* We removed "Uncertain" badges. Ambiguous claims now default to a neutral **"Needs Human Review"** state (Blue/Dashed UI), prioritizing safety over false confidence.
+2.  **Hallucinated Explanations:** LLMs often give correct verdicts with made-up reasons.
+    *   *TraceGraph Solution:* Our prompt forces the model to **extract exact quotes** from the source text before rendering a verdict. No quote = No verification.
+3.  **Stale Knowledge:** Without RAG, LLMs fail at checking external facts (e.g., GDP data).
+    *   *TraceGraph Solution:* We strictly scope the MVP to **Internal Consistency Checking**—verifying if the argument holds water based *only* on the provided text.
 
 ## 🚀 Key Features
 

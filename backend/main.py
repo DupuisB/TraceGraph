@@ -52,16 +52,21 @@ async def process_verification_tasks(
     results = await asyncio.gather(*tasks)
 
     for claim, result in zip(claims, results, strict=False):
-        status_str = result.get("status", "uncertain").lower()
+        status_str = result.get("status", "needs_review").lower()
         reason = result.get("reason", "")
+        quote = result.get("quote", None)
 
         try:
             claim.verification_status = VerificationStatus(status_str)
         except ValueError:
-            claim.verification_status = VerificationStatus.UNCERTAIN
+            # Fallback to NEEDS_REVIEW if model returns something unexpected
+            claim.verification_status = VerificationStatus.NEEDS_REVIEW
 
         claim.verification_reason = reason
-        print(f"    - Verified '{claim.id}': {claim.verification_status} ({reason})")
+        claim.verification_quote = quote
+        print(
+            f"    - Verified '{claim.id}': {claim.verification_status} (Quote: {quote})"
+        )
 
     # Update the store with the fully verified graph
     if graph.root_claim_id:

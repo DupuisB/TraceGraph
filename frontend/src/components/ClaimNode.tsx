@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "reactflow";
-import { CheckCircle2, XCircle, HelpCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Eye, Loader2 } from "lucide-react";
 
 const ClaimNode = ({ data }: NodeProps) => {
   const status = data.verification_status || "pending";
@@ -11,9 +11,11 @@ const ClaimNode = ({ data }: NodeProps) => {
         return "bg-emerald-950/50 border-emerald-500 shadow-emerald-500/20";
       case "refuted":
         return "bg-rose-950/50 border-rose-500 shadow-rose-500/20";
-      case "uncertain":
-        return "bg-amber-950/30 border-amber-500 shadow-amber-500/20";
+      case "needs_review":
+        // Research-backed: Neutral styling to avoid "False Security" of warning colors
+        return "bg-slate-900 border-slate-500 border-dashed opacity-80";
       default:
+        // Default covers pending/uncertain
         return "bg-zinc-900 border-indigo-500";
     }
   };
@@ -24,8 +26,8 @@ const ClaimNode = ({ data }: NodeProps) => {
         return <CheckCircle2 size={16} className="text-emerald-400 mr-2" />;
       case "refuted":
         return <XCircle size={16} className="text-rose-400 mr-2" />;
-      case "uncertain":
-        return <HelpCircle size={16} className="text-amber-400 mr-2" />;
+      case "needs_review":
+        return <Eye size={16} className="text-slate-400 mr-2" />;
       default:
         return (
           <Loader2 size={16} className="text-indigo-400 mr-2 animate-spin" />
@@ -45,7 +47,7 @@ const ClaimNode = ({ data }: NodeProps) => {
         <div className="flex items-center mb-2 border-b border-white/10 pb-2">
           {getStatusIcon()}
           <span className="text-[10px] uppercase tracking-widest font-bold ml-2 opacity-80">
-            Claim
+            {status === "needs_review" ? "Review" : "Claim"}
           </span>
         </div>
 
@@ -54,12 +56,22 @@ const ClaimNode = ({ data }: NodeProps) => {
           {data.label}
         </div>
 
-        {data.verification_reason && (
-          <div className="mt-3 text-[10px] leading-relaxed p-2 bg-black/20 rounded border border-white/5">
-            <span className="font-bold opacity-70 block mb-1">Reasoning:</span>
-            <span className="opacity-80 line-clamp-3">
-              {data.verification_reason}
-            </span>
+        {/* Verification Logic Display */}
+        {data.verification_status !== "pending" && (
+          <div className="mt-3 flex flex-col gap-2">
+            {data.verification_quote && (
+              <div className="text-[10px] italic text-zinc-400 border-l-2 border-white/10 pl-2">
+                "{data.verification_quote}"
+              </div>
+            )}
+
+            {data.verification_reason && (
+              <div className="text-[10px] leading-relaxed p-2 bg-black/20 rounded border border-white/5">
+                <span className="opacity-80 line-clamp-3">
+                  {data.verification_reason}
+                </span>
+              </div>
+            )}
           </div>
         )}
       </div>

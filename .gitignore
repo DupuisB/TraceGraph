@@ -44,3 +44,6 @@ Thumbs.db
 
 # Agent specific
 .agent/
+
+# Local files
+local/

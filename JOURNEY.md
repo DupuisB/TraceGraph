@@ -72,6 +72,11 @@ We built more than an MVP. We built a **System**.
 *   It's efficient (Parallel Async).
 *   It's maintainable (Strict Typing & CI).
 
-**Next Steps:**
-*   **RAG Integration:** Connect to a real vector DB.
-*   **Comparison Mode:** Visualizing differences between models.
+---
+
+## 8. Validation: The Research Pivot
+**"Building the right thing" vs. "Building the thing right."**
+We paused to analyze three key papers (DeVerna et al. 2024, etc.).
+*   **The "Backfire" Discovery:** We learned that "Uncertain" labels actually harm user trust.
+*   **The Pivot:** We renamed the status to "Needs Human Review" and changed the UI from "Warning Yellow" to "Neutral Blue." We also forced the AI to quote its sources (`quote` field) to combat hallucinated explanations.
+*   **Result:** A tool that is safer and scientifically grounded.
