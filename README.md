@@ -1,14 +1,20 @@
 # Mistral TraceGraph 🕸️
 
-**TraceGraph** is an "Argument-as-a-Graph" (AaaG) visualization tool that transforms linear LLM outputs into verifiable, structured logic topologies. It turns complex reasoning chains into interactive Directed Acyclic Graphs (DAGs), enabling users to inspect, verify, and experiment with the logic behind the text.
+**TraceGraph** is an "Argument-as-a-Graph" (AaaG) visualization tool that transforms linear LLM outputs into verifiable, structured logic topologies.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Status](https://img.shields.io/badge/status-MVP-success)
+![Graph Visualization](https://placehold.co/800x400?text=Graph+Visualization+Placeholder)
+
+## 💡 Product Philosophy
+
+> **Designed for the 'Forensic Analyst' persona—prioritizing transparency over chat fluidity.**
+
+LLMs are often black boxes. TraceGraph is a "Glass Box." We move Mistral from a general-purpose chatbot to a specialized **Logic Engine** for professional intelligence (Legal, Audit, Financial Analysis).
 
 ## 🚀 Key Features
 
-### Phase A: The Constructor 🏗️
-*   **AI-Powered Extraction:** Uses **Mistral Large** to decompose text blobs (articles, legal contracts, debates) into atomic claims and evidence.
+### Optimized Model Orchestration 🧠
+*   **Architect (Mistral Large):** Selected for high complex reasoning and strict JSON adherence to construct reliable DAGs.
+*   **Auditor (Mistral Small):** Selected for low-latency, high-throughput verification loops to minimize cost while maximizing coverage.
 *   **Strict JSON Schema:** Enforces a rigid graph structure using Mistral's JSON mode for reliable rendering.
 *   **Interactive Visualization:** Powered by **React Flow** and **ELK Layout engine** for automatic, hierarchical graph organization.
 
@@ -23,6 +29,31 @@
 *   **Edit Nodes:** Click any node to modify its text directly in the UI.
 *   **Smart Deletion:** Remove nodes and watch dependency propagation—orphan nodes are visually dimmed to preserve context.
 *   **Sticky Selection:** Click to lock focus on a node for detailed analysis.
+
+## 🏗️ System Logic
+
+```mermaid
+graph TD
+    User[User Input] -->|POST /analyze| API[FastAPI Backend]
+
+    subgraph "Phase A: Construction (Mistral Large)"
+        API -->|Architect Prompt| Large[Mistral Large]
+        Large -->|JSON Graph| API
+    end
+
+    API -->|Return Graph Structure| UI[React Frontend]
+
+    subgraph "Phase B: Verification (Mistral Small)"
+        API -->|Background Task| Queue[Async Queue]
+        Queue -->|Parallel Requests| Small[Mistral Small]
+        Small -->|Verified/Refuted| Queue
+    end
+
+    Queue -.->|Polling Updates| UI
+
+    style Large fill:#BD34FE,stroke:#fff,color:#fff
+    style Small fill:#F59E0B,stroke:#fff,color:#fff
+```
 
 ---
 

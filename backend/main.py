@@ -1,3 +1,4 @@
+import asyncio
 from typing import Annotated
 
 from dotenv import find_dotenv, load_dotenv
@@ -38,17 +39,19 @@ def get_mistral_service() -> MistralService:
 async def process_verification_tasks(
     graph: GraphStructure, service: MistralService, context: str
 ):
-    """Background task to verify all claims in the graph."""
+    """Background task to verify all claims in the graph in parallel."""
     print(f"--> [Auditor] Starting verification ({len(graph.nodes)} nodes)...")
 
     # Identify claims
     claims = [node for node in graph.nodes if node.type == "claim"]
 
-    for claim in claims:
-        # Verify each claim
-        result = await service.verify_claim(claim.text, context)
+    # Initialize verification tasks
+    tasks = [service.verify_claim(claim.text, context) for claim in claims]
 
-        # Update node status
+    # Execute efficiently in parallel
+    results = await asyncio.gather(*tasks)
+
+    for claim, result in zip(claims, results, strict=False):
         status_str = result.get("status", "uncertain").lower()
         reason = result.get("reason", "")
 
@@ -61,7 +64,6 @@ async def process_verification_tasks(
         print(f"    - Verified '{claim.id}': {claim.verification_status} ({reason})")
 
     # Update the store with the fully verified graph
-    # Note: In a real DB, we'd update rows. Here we mutate the object in the dict.
     if graph.root_claim_id:
         GRAPH_STORE[graph.root_claim_id] = graph
     print(f"--> [Auditor] Verification complete for graph {graph.root_claim_id}")

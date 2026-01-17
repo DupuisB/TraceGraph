@@ -8,6 +8,11 @@ from app.prompts.architect import ARCHITECT_PROMPT
 from app.schemas.graph import AnalysisResponse
 
 
+def clean_json_string(s: str) -> str:
+    """Cleans Mistral response to ensure valid JSON."""
+    return s.replace("```json", "").replace("```", "").strip()
+
+
 class MistralService:
     def __init__(self):
         api_key = os.getenv("MISTRAL_API_KEY")
@@ -40,7 +45,7 @@ class MistralService:
             if not content:
                 raise ConstructionError("Mistral returned an empty response")
 
-            data = json.loads(content)
+            data = json.loads(clean_json_string(content))
             return AnalysisResponse(**data)
 
         except Exception as e:
@@ -66,7 +71,7 @@ class MistralService:
             if not isinstance(content, str) or not content:
                 return {"status": "uncertain", "reason": "Empty response from verifier"}
 
-            return json.loads(content)
+            return json.loads(clean_json_string(content))
         except Exception as e:
             print(f"Verification error: {e}")
             return {"status": "uncertain", "reason": f"Verification failed: {str(e)}"}
