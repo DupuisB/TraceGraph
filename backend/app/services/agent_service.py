@@ -74,7 +74,6 @@ class AgentService:
             response = await self.client.agents.complete_async(
                 agent_id=agent_id,
                 messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
             )
 
             content = response.choices[0].message.content
