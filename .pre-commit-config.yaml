@@ -18,6 +18,14 @@ repos:
         pass_filenames: false
         files: ^backend/
 
+      - id: tsc
+        name: tsc
+        entry: bash -c "cd frontend && npx tsc --noEmit"
+        language: system
+        types: [ts, tsx]
+        pass_filenames: false
+        files: ^frontend/
+
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v10.0.0-rc.0
     hooks:
