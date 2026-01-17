@@ -24,6 +24,8 @@ wheels/
 venv/
 ENV/
 .env
+.ruff_cache/
+.pytest_cache/
 
 # Node.js
 node_modules/

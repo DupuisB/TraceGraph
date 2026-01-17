@@ -47,6 +47,12 @@ dependencies = [
     { name = "uvicorn" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "httpx" },
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.128.0" },
@@ -57,6 +63,12 @@ requires-dist = [
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "ruff", specifier = ">=0.14.13" },
     { name = "uvicorn", specifier = ">=0.40.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pytest", specifier = ">=9.0.2" },
 ]
 
 [[package]]
