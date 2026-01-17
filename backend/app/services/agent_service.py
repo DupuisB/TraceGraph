@@ -13,7 +13,7 @@ class AgentService:
             raise ConstructionError("MISTRAL_API_KEY not found in environment")
         self.client = Mistral(api_key=api_key)
         self.model = "mistral-large-latest"
-        self.agent_name = "TraceGraph Auditor"
+        self.agent_name = "TraceGraph Auditor V2"
 
     async def get_or_create_auditor_agent(self) -> str:
         """
@@ -42,7 +42,8 @@ class AgentService:
             '  "status": "verified" | "refuted" | "needs_review",\n'
             '  "reason": "Brief explanation citing the source.",\n'
             '  "quote": "Exact quote from the web result or text context.",\n'
-            '  "source_url": "URL of the source found via web_search or null"\n'
+            '  "source_url": "The exact URL of the primary evidence used. "\n'
+            '                "MUST be filled if web_search was used."\n'
             "}"
         )
 
