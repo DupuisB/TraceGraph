@@ -70,17 +70,31 @@ const ClaimNode = ({ data }: NodeProps) => {
                 <span className="opacity-80 line-clamp-3">
                   {data.verification_reason}
                 </span>
-                {data.source_url && (
-                  <a
-                    href={data.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block mt-2 text-indigo-400 hover:text-indigo-300 underline truncate"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    Source: {new URL(data.source_url).hostname}
-                  </a>
-                )}
+              </div>
+            )}
+
+            {/* V2: Web Search Citations */}
+            {data.citations && data.citations.length > 0 && (
+              <div className="text-[10px] mt-1">
+                <span className="opacity-60 block mb-1">Sources:</span>
+                <div className="flex flex-wrap gap-1">
+                  {data.citations
+                    .slice(0, 3)
+                    .map(
+                      (citation: { title: string; url: string }, i: number) => (
+                        <a
+                          key={i}
+                          href={citation.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-indigo-400 hover:text-indigo-300 underline truncate max-w-[180px]"
+                          title={citation.title}
+                        >
+                          {citation.title || citation.url}
+                        </a>
+                      ),
+                    )}
+                </div>
               </div>
             )}
           </div>

@@ -109,6 +109,31 @@ We paused to analyze three key papers (DeVerna et al. 2024, etc.).
 ## 9. Phase 2: The Agentic Shift (V2)
 **Goal:** Transition from a "Closed Context" validator to an "Open World" researcher.
 **Strategy:** Leverage Mistral's **Agents API** and **Native Web Search**.
-*   **Problem:** The MVP cannot verify external facts (e.g., "Paris GDP in 2024").
-*   **Solution:** We are replacing the static "Auditor" with an autonomous "Auditor Agent" capable of using tools.
-*   **Why Native?** Using Mistral's built-in web search avoids the complexity/cost of 3rd party scrapers (Tavily/Serper) and keeps the stack unified.
+
+### The Challenge
+*   The MVP cannot verify external facts (e.g., "Paris GDP in 2024").
+*   LLMs suffer from "stale knowledge" (training data cutoff).
+
+### The Architecture
+We implemented a **3-Service Design**:
+1.  **`AgentService`:** Creates a persistent Mistral Agent with `web_search` tool enabled.
+2.  **`ClaimRouter`:** Classifies claims as "logic" vs "fact" using Mistral Small.
+3.  **`VerificationOrchestrator`:** Unifies the routing logic—facts go to the Agent, logic stays internal.
+
+### Feature Flag
+```bash
+ENABLE_WEB_SEARCH=true  # Activate V2 mode
+```
+When enabled, the system:
+1.  Routes each claim through the classifier.
+2.  If classified as "fact" (with >70% confidence), dispatches to the Web Agent.
+3.  Parses citations from the response and displays them on the graph node.
+
+### Frontend Updates
+*   Added `Citation` model to schema.
+*   `ClaimNode.tsx` now renders clickable source links when citations are present.
+
+### Why Native Web Search?
+*   **Cost:** Avoid Tavily/Serper API fees.
+*   **Simplicity:** One SDK, one auth mechanism.
+*   **Enterprise:** Mistral handles compliance and rate limits.

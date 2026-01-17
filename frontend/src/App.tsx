@@ -40,6 +40,13 @@ const nodeTypes = {
   axiom: AxiomNode,
 };
 
+// V2: Citation from web search
+interface Citation {
+  title: string;
+  url: string;
+  source: string;
+}
+
 interface GraphNode {
   id: string;
   type: "claim" | "evidence" | "axiom";
@@ -54,7 +61,7 @@ interface GraphNode {
     | "needs_review";
   verification_reason?: string;
   verification_quote?: string;
-  source_url?: string;
+  citations?: Citation[];
   isOrphaned?: boolean;
 }
 
@@ -296,7 +303,7 @@ const Flow = () => {
                   verification_status: updatedNode.verification_status,
                   verification_reason: updatedNode.verification_reason,
                   verification_quote: updatedNode.verification_quote,
-                  source_url: updatedNode.source_url,
+                  citations: updatedNode.citations,
                 },
               };
             }

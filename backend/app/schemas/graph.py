@@ -23,6 +23,14 @@ class VerificationStatus(str, Enum):
     NEEDS_REVIEW = "needs_review"
 
 
+class Citation(BaseModel):
+    """External source citation from web search."""
+
+    title: str = Field(default="", description="Title of the source")
+    url: str = Field(default="", description="URL of the source")
+    source: str = Field(default="", description="Source domain or provider")
+
+
 class Node(BaseModel):
     id: str = Field(..., description="Unique identifier (slug or UUID)")
     type: NodeType
@@ -36,8 +44,8 @@ class Node(BaseModel):
     verification_quote: str | None = Field(
         default=None, description="Exact quote supporting the verification verdict"
     )
-    source_url: str | None = Field(
-        default=None, description="URL of the external source if found"
+    citations: list[Citation] = Field(
+        default_factory=list, description="External sources from web verification"
     )
 
 

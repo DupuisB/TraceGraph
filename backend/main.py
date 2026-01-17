@@ -1,4 +1,5 @@
 import asyncio
+import os
 from typing import Annotated
 
 from dotenv import find_dotenv, load_dotenv
@@ -10,14 +11,18 @@ from app.schemas.graph import (
     AnalysisRequest,
     AnalysisResponse,
     GraphStructure,
-    VerificationStatus,
 )
-from app.services.agent_service import AgentService
 from app.services.mistral_service import MistralService
+
+# V2: Import orchestrator and agent service
+from app.services.verification_orchestrator import VerificationOrchestrator
 
 load_dotenv(find_dotenv())
 
 app = FastAPI(title="TraceGraph API")
+
+# Feature flag for web search (V2)
+ENABLE_WEB_SEARCH = os.getenv("ENABLE_WEB_SEARCH", "false").lower() == "true"
 
 # In-memory store for graph states (for MVP polling)
 # Key: root_claim_id (or temporary ID), Value: GraphStructure
@@ -37,50 +42,38 @@ def get_mistral_service() -> MistralService:
     return MistralService()
 
 
-def get_agent_service() -> AgentService:
-    return AgentService()
+def get_orchestrator(
+    mistral_service: MistralService,
+) -> VerificationOrchestrator:
+    """Create orchestrator with optional web search."""
+    agent_service = None
+    if ENABLE_WEB_SEARCH:
+        from app.services.agent_service import AgentService
+
+        agent_service = AgentService()
+
+    return VerificationOrchestrator(
+        mistral_service=mistral_service,
+        agent_service=agent_service,
+        enable_web_search=ENABLE_WEB_SEARCH,
+    )
 
 
 async def process_verification_tasks(
-    graph: GraphStructure, agent_service: AgentService, context: str
+    graph: GraphStructure,
+    orchestrator: VerificationOrchestrator,
+    context: str,
 ):
-    """Background task to verify all claims in the graph in parallel using Agents."""
-    print(f"--> [Auditor Agent] Starting verification ({len(graph.nodes)} nodes)...")
+    """Background task to verify all claims in the graph in parallel."""
+    print(f"--> [Auditor] Starting verification ({len(graph.nodes)} nodes)...")
+    print(f"    Web Search Enabled: {ENABLE_WEB_SEARCH}")
 
-    # Identify nodes to verify (Claims, Evidence, Axioms)
-    # Why verify Axioms? If extracted from text, they are assertions to be checked.
-    nodes_to_verify = [
-        node for node in graph.nodes if node.type in ("claim", "evidence", "axiom")
-    ]
+    # Identify claims
+    claims = [node for node in graph.nodes if node.type == "claim"]
 
-    # Initialize verification tasks
-    tasks = [
-        agent_service.verify_claim_with_agent(node.text, context)
-        for node in nodes_to_verify
-    ]
-
-    # Execute efficiently in parallel
-    results = await asyncio.gather(*tasks)
-
-    for node, result in zip(nodes_to_verify, results, strict=False):
-        status_str = result.get("status", "needs_review").lower()
-        reason = result.get("reason", "")
-        quote = result.get("quote", None)
-        source_url = result.get("source_url", None)
-
-        try:
-            node.verification_status = VerificationStatus(status_str)
-        except ValueError:
-            # Fallback to NEEDS_REVIEW if model returns something unexpected
-            node.verification_status = VerificationStatus.NEEDS_REVIEW
-
-        node.verification_reason = reason
-        node.verification_quote = quote
-        node.source_url = source_url
-        print(
-            f"    - Verified '{node.id}': {node.verification_status} "
-            f"(Source: {source_url})"
-        )
+    # Verify all claims in parallel using orchestrator
+    tasks = [orchestrator.verify_claim(claim, context) for claim in claims]
+    await asyncio.gather(*tasks)
 
     # Update the store with the fully verified graph
     if graph.root_claim_id:
@@ -98,7 +91,6 @@ async def analyze(
     request: AnalysisRequest,
     background_tasks: BackgroundTasks,
     service: Annotated[MistralService, Depends(get_mistral_service)],
-    agent_service: Annotated[AgentService, Depends(get_agent_service)],
 ):
     """Analyze a text blob and return a logic graph."""
     print(
@@ -114,11 +106,12 @@ async def analyze(
                 response.graph_structure
             )
 
-        # Schedule background verification
+        # Schedule background verification (V2: use orchestrator)
+        orchestrator = get_orchestrator(service)
         background_tasks.add_task(
             process_verification_tasks,
             response.graph_structure,
-            agent_service,
+            orchestrator,
             request.text_blob,
         )
 

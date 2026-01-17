@@ -1,148 +1,145 @@
-import json
+"""
+AgentService: Mistral Agents API integration for factual verification.
+
+Uses the native web_search tool to verify claims against live web data,
+solving the "stale knowledge" limitation of standard LLM calls.
+"""
+
 import os
+from typing import TypedDict
 
 from mistralai import Mistral
 
-from app.exceptions import ConstructionError
+
+class VerificationResult(TypedDict):
+    """Result from the agent verification."""
+
+    status: str  # verified | refuted | needs_review
+    reason: str
+    quote: str | None
+    citations: list[dict]  # [{title, url, source}]
 
 
 class AgentService:
-    def __init__(self):
+    """Service for creating and managing Mistral Agents with web search."""
+
+    def __init__(self) -> None:
         api_key = os.getenv("MISTRAL_API_KEY")
         if not api_key:
-            raise ConstructionError("MISTRAL_API_KEY not found in environment")
+            raise ValueError("MISTRAL_API_KEY not found in environment")
         self.client = Mistral(api_key=api_key)
-        self.model = "mistral-large-latest"
-        self.agent_name = "TraceGraph Auditor V3"
+        self._agent_id: str | None = None
 
-    async def get_or_create_auditor_agent(self) -> str:
-        """
-        Retrieves the Auditor Agent ID, or creates it if it doesn't exist.
-        """
-        # List existing agents (Beta API for management)
-        # Passing page_size and metadata={} to avoid SDK UNSET bug
-        agents = await self.client.beta.agents.list_async(page_size=100, metadata={})
+    async def _ensure_agent_exists(self) -> str:
+        """Create or retrieve the Auditor Agent."""
+        if self._agent_id:
+            return self._agent_id
 
-        for agent in agents:
-            if agent.name == self.agent_name:
-                return agent.id
+        # Create the agent with web_search capability
+        agent = self.client.beta.agents.create(
+            model="mistral-medium-2505",
+            name="TraceGraph Fact Auditor",
+            description="Agent that verifies factual claims using web search.",
+            instructions="""You are a strict Fact Auditor with web search capabilities.
 
-        # Create if not found
-        instructions = (
-            "You are a strict Logic & Fact Auditor for the TraceGraph system.\n"
-            "YOUR GOAL: Verify if the User's Claim is true or false.\n\n"
-            "TOOLS:\n- You have access to the 'web_search' tool.\n\n"
-            "PROCESS:\n"
-            "1. If the claim is logical, verify internal consistency.\n"
-            "2. If it references external facts, USE THE WEB_SEARCH TOOL.\n"
-            "3. Compare the Claim against the Evidence found.\n\n"
-            "OUTPUT FORMAT:\n"
-            "Return a JSON object:\n"
-            "{\n"
-            '  "status": "verified" | "refuted" | "needs_review",\n'
-            '  "reason": "Brief explanation citing the source.",\n'
-            '  "quote": "Exact quote from the web result or text context.",\n'
-            '  "source_url": "The exact URL of the primary evidence used. "\n'
-            '                "MUST be filled if web_search was used."\n'
-            "}"
-        )
+Your task is to verify factual claims by searching the web for evidence.
 
-        created_agent = await self.client.beta.agents.create_async(
-            model=self.model,
-            name=self.agent_name,
-            instructions=instructions,
+### Instructions:
+1. Use web_search to find recent, authoritative sources.
+2. Compare the claim against retrieved information.
+3. Return a JSON verdict with citations.
+
+### Response Format (JSON):
+{
+  "status": "verified | refuted | needs_review",
+  "reason": "Brief explanation with evidence",
+  "sources_used": ["url1", "url2"]
+}
+""",
             tools=[{"type": "web_search"}],
-            description="Agent that checks claims using logic and web search.",
+            completion_args={
+                "temperature": 0.2,
+                "top_p": 0.95,
+            },
         )
-        return created_agent.id
 
-    async def verify_claim_with_agent(self, claim_text: str, context: str = "") -> dict:
+        self._agent_id = agent.id
+        print(f"--> [AgentService] Created Auditor Agent: {self._agent_id}")
+        return self._agent_id
+
+    async def verify_claim_with_web(
+        self, claim_text: str, context: str = ""
+    ) -> VerificationResult:
+        """Verify a claim using the web search agent.
+
+        Args:
+            claim_text: The claim to verify.
+            context: Optional context from the original text.
+
+        Returns:
+            VerificationResult with status, reason, and citations.
         """
-        Verifies a claim using the agent with web_search tool.
-        Uses the Conversations API for proper tool execution.
-        """
-        agent_id = await self.get_or_create_auditor_agent()
+        agent_id = await self._ensure_agent_exists()
 
-        prompt = f"""
-Context: {context}
+        prompt = f"""Verify this claim using web search:
 
-Claim to verify: {claim_text}
+Claim: {claim_text}
 
-IMPORTANT: You MUST return ONLY a valid JSON object with this exact structure:
-{{
-  "status": "verified" | "refuted" | "needs_review",
-  "reason": "Brief explanation",
-  "quote": "Exact quote from source",
-  "source_url": "URL if web_search was used, otherwise null"
-}}
+Original Context (for reference): {context[:500] if context else "None provided"}
 
-Do not include any text before or after the JSON. Do not wrap it in markdown
-code blocks.
-"""
+Search the web and provide your verdict as JSON."""
 
         try:
-            # Use Conversations API for proper web_search handling
-            response = await self.client.beta.conversations.start_async(
+            response = self.client.beta.conversations.start(
                 agent_id=agent_id,
                 inputs=prompt,
             )
 
-            print(f"[DEBUG] Conversation response type: {type(response)}")
+            # Parse the response entries
+            # Note: Beta API types are incomplete, using type: ignore
+            citations: list[dict] = []
+            final_text = ""
 
-            # Extract content from conversation response
-            content_str = ""
-            source_url = None
+            for entry in response.entries:  # type: ignore[attr-defined]
+                if entry.type == "message.output":
+                    for chunk in entry.content:
+                        if chunk.type == "text":
+                            final_text += chunk.text
+                        elif chunk.type == "tool_reference":
+                            citations.append(
+                                {
+                                    "title": getattr(chunk, "title", ""),
+                                    "url": getattr(chunk, "url", ""),
+                                    "source": getattr(chunk, "source", ""),
+                                }
+                            )
 
-            # The response has 'outputs' with content chunks
-            if hasattr(response, "outputs"):
-                for output in response.outputs:  # type: ignore[union-attr]
-                    print(f"[DEBUG] Output type: {type(output)}")
-                    if hasattr(output, "content"):
-                        for chunk in output.content:  # type: ignore[union-attr]
-                            # Text chunks
-                            text = getattr(chunk, "text", None)
-                            if text:
-                                content_str += text
-                            # Reference chunks with URLs
-                            url = getattr(chunk, "url", None)
-                            if url:
-                                if not source_url:  # Take the first URL
-                                    source_url = url
-                                    print(f"[DEBUG] Found source URL: {source_url}")
+            # Parse JSON from response
+            import json
 
-            print(f"[DEBUG] Extracted content: {content_str[:200]}...")
-            print(f"[DEBUG] Extracted source_url: {source_url}")
+            try:
+                # Try to extract JSON from the response
+                json_start = final_text.find("{")
+                json_end = final_text.rfind("}") + 1
+                if json_start != -1 and json_end > json_start:
+                    result_data = json.loads(final_text[json_start:json_end])
+                else:
+                    result_data = {"status": "needs_review", "reason": final_text}
+            except json.JSONDecodeError:
+                result_data = {"status": "needs_review", "reason": final_text}
 
-            if content_str:
-                cleaned_content = (
-                    content_str.replace("```json", "").replace("```", "").strip()
-                )
-                if cleaned_content:
-                    try:
-                        result = json.loads(cleaned_content)
-                        # If we found a source_url from citations, use it
-                        if source_url and not result.get("source_url"):
-                            result["source_url"] = source_url
-                        return result
-                    except json.JSONDecodeError as je:
-                        print(f"[ERROR] JSON parse error: {je}")
-                        print(f"[ERROR] Content: {cleaned_content[:500]}")
-                        return {
-                            "status": "needs_review",
-                            "reason": f"Invalid JSON: {str(je)}",
-                            "source_url": source_url,
-                        }
-
-            return {
-                "status": "needs_review",
-                "reason": "Agent returned empty response",
-                "source_url": None,
-            }
+            return VerificationResult(
+                status=result_data.get("status", "needs_review"),
+                reason=result_data.get("reason", ""),
+                quote=None,  # Web search doesn't have quotes from original
+                citations=citations,
+            )
 
         except Exception as e:
-            print(f"Agent verification failed: {e}")
-            return {
-                "status": "needs_review",
-                "reason": f"Agent error: {str(e)}",
-                "source_url": None,
-            }
+            print(f"[AgentService] Verification error: {e}")
+            return VerificationResult(
+                status="needs_review",
+                reason=f"Web verification failed: {str(e)}",
+                quote=None,
+                citations=[],
+            )
