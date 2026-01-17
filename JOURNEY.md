@@ -81,7 +81,7 @@ We paused to analyze three key papers (DeVerna et al. 2024, etc.).
 *   **The Pivot:** We renamed the status to "Needs Human Review" and changed the UI from "Warning Yellow" to "Neutral Blue." We also forced the AI to quote its sources (`quote` field) to combat hallucinated explanations.
 *   **Result:** A tool that is safer and scientifically grounded.
 
-<details><summary> <h3> Detailed explaination:</h3></summary>
+<details><summary> <h3> Detailed explanation:</h3></summary>
 
     This update refines the `TraceGraph` project from a generic fact-checker to a research-backed "Consistency Auditor" based on the following academic insights:
 
