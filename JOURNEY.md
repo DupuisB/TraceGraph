@@ -80,3 +80,27 @@ We paused to analyze three key papers (DeVerna et al. 2024, etc.).
 *   **The "Backfire" Discovery:** We learned that "Uncertain" labels actually harm user trust.
 *   **The Pivot:** We renamed the status to "Needs Human Review" and changed the UI from "Warning Yellow" to "Neutral Blue." We also forced the AI to quote its sources (`quote` field) to combat hallucinated explanations.
 *   **Result:** A tool that is safer and scientifically grounded.
+
+<details><summary> <h3> Detailed explaination:</h3></summary>
+
+    This update refines the `TraceGraph` project from a generic fact-checker to a research-backed "Consistency Auditor" based on the following academic insights:
+
+    * **Mitigating the "Backfire Effect"**: DeVerna et al. (2024) demonstrated that labeling information as "Uncertain" can paradoxically increase user belief in misinformation compared to no labeling at all. To mitigate this cognitive bias, the "Uncertain" label was removed and replaced with a neutral, action-oriented **"Needs Review"** directive.
+
+    * **Grounding Hallucinations**: Pan et al. (2024) highlighted that while Generative AI can assist in fact-checking, it is prone to hallucinating explanations even when the verdict is correct. Addressing this, the backend `Auditor` prompt was restructured to enforce the extraction of **exact quotes** from the source text before a verdict is rendered, ensuring logic is grounded in evidence rather than the model's internal parameters.
+
+    * **Architectural Validity**: Zhang et al. (2024) validated the efficacy of decomposing complex claims into atomic units (like a graph) but noted the limitations of LLMs regarding "stale knowledge" in open-domain checking. Consequently, the project scope was tightened to "Closed Context" consistency checking to align with current technical capabilities.
+
+    **Summary of Code Changes**:
+    Based on these findings, the `dernier_commit.txt` file implements a rewrite of the `Auditor` system prompt to mandate quote extraction (`auditor.py`), updates the `Node` schema to include a `verification_quote` field (`graph.py`), and redesigns the UI to replace warning colors with neutral administrative signals for ambiguous claims (`ClaimNode.tsx`).
+
+    ---
+
+    ### References
+
+    DeVerna, M. R., Yan, H. Y., Pierri, F., Menczer, F., & Yang, K. (2024). Fact-checking information from large language models can decrease headline discernment. *arXiv preprint*.
+
+    Pan, Y., et al. (2024). The perils and promises of generative AI for fact-checking. *Frontiers in Artificial Intelligence*, 7, 1341697.
+
+    Zhang, Y., et al. (2024). Generative LLMs in automated fact-checking: A survey. *arXiv preprint arXiv:2407.02351*.
+</details>
