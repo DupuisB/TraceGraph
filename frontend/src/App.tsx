@@ -9,7 +9,6 @@ import ReactFlow, {
   ReactFlowProvider,
   type Connection,
   type Edge,
-  type Node,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Send, Loader2, Share2, Layers } from "lucide-react";
@@ -30,6 +29,8 @@ interface GraphNode {
   text: string;
   source_span?: string;
   confidence?: number;
+  verification_status?: "pending" | "verified" | "refuted" | "uncertain";
+  verification_reason?: string;
 }
 
 interface GraphEdge {
@@ -66,39 +67,95 @@ const Flow = () => {
       const data = await response.json();
       const structure = data.graph_structure;
 
-      // Basic layout logic (simple row-based for nodes)
-      const newNodes: Node[] = structure.nodes.map(
-        (n: GraphNode, idx: number) => ({
-          id: n.id,
-          type: n.type,
-          data: {
-            label: n.text,
-            source_span: n.source_span,
-            confidence: n.confidence,
-          },
-          position: { x: 250, y: idx * 150 }, // Initial vertical layout
-        }),
-      );
+      // Initial Layout using ELK
+      await updateGraphWithLayout(structure);
 
-      const newEdges: Edge[] = structure.edges.map(
-        (e: GraphEdge, idx: number) => ({
-          id: `e-${idx}`,
-          source: e.source,
-          target: e.target,
-          label: e.type,
-          animated: true,
-          style: { stroke: e.type === "contradicts" ? "#ef4444" : "#6366f1" },
-        }),
-      );
-
-      setNodes(newNodes);
-      setEdges(newEdges);
+      // Start polling for verification status
+      if (structure.root_claim_id) {
+        pollGraphStatus(structure.root_claim_id);
+      }
     } catch (error) {
       console.error("Error analyzing text:", error);
       alert("Failed to analyze text. Is the backend running?");
     } finally {
       setLoading(false);
     }
+  };
+
+  const pollGraphStatus = (graphId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`http://localhost:8000/graph/${graphId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // We just update data here, preserving layout if possible?
+        // For simplicity in MVP, we re-layout or just update node data.
+        // Re-layouting on every poll might be jumpy.
+        // Let's just update the node data (verification status) without moving them.
+        setNodes((nodes) =>
+          nodes.map((n) => {
+            const updatedNode = data.nodes.find((un: any) => un.id === n.id);
+            if (updatedNode) {
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  verification_status: updatedNode.verification_status,
+                  verification_reason: updatedNode.verification_reason,
+                },
+              };
+            }
+            return n;
+          }),
+        );
+
+        // Stop polling if all claims are verified
+        const pendingClaims = data.nodes.some(
+          (n: GraphNode) =>
+            n.type === "claim" && n.verification_status === "pending",
+        );
+        if (!pendingClaims) {
+          clearInterval(interval);
+        }
+      } catch (e) {
+        console.error("Polling error", e);
+      }
+    }, 2000);
+  };
+
+  const updateGraphWithLayout = async (structure: any) => {
+    const rawNodes = structure.nodes.map((n: GraphNode) => ({
+      id: n.id,
+      type: n.type,
+      data: {
+        label: n.text,
+        source_span: n.source_span,
+        confidence: n.confidence,
+        verification_status: n.verification_status,
+        verification_reason: n.verification_reason,
+      },
+      position: { x: 0, y: 0 }, // ELK will decide
+    }));
+
+    const rawEdges = structure.edges.map((e: GraphEdge, idx: number) => ({
+      id: `e-${idx}`,
+      source: e.source,
+      target: e.target,
+      type: "default", // 'smoothstep' or 'bezier'
+      animated: true,
+      style: {
+        stroke: e.type === "contradicts" ? "#ef4444" : "#6366f1",
+        strokeWidth: 2,
+      },
+    }));
+
+    // Apply ELK Layout
+    const { nodes: layoutedNodes, edges: layoutedEdges } =
+      await getLayoutedElements(rawNodes, rawEdges);
+
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
   };
 
   return (
@@ -178,10 +235,14 @@ const Flow = () => {
   );
 };
 
-export default function App() {
+import { getLayoutedElements } from "./utils/layout";
+
+function App() {
   return (
     <ReactFlowProvider>
       <Flow />
     </ReactFlowProvider>
   );
 }
+
+export default App;

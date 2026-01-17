@@ -15,6 +15,13 @@ class RelationType(str, Enum):
     ENTAILS = "entails"
 
 
+class VerificationStatus(str, Enum):
+    PENDING = "pending"
+    VERIFIED = "verified"
+    REFUTED = "refuted"
+    UNCERTAIN = "uncertain"
+
+
 class Node(BaseModel):
     id: str = Field(..., description="Unique identifier (slug or UUID)")
     type: NodeType
@@ -23,6 +30,8 @@ class Node(BaseModel):
         None, description="Exact quote from the original text"
     )
     confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    verification_status: VerificationStatus = Field(default=VerificationStatus.PENDING)
+    verification_reason: str | None = Field(default=None)
 
 
 class Edge(BaseModel):

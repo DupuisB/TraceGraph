@@ -47,3 +47,26 @@ class MistralService:
             if isinstance(e, ConstructionError):
                 raise e
             raise ConstructionError(f"Failed to extract graph: {str(e)}") from e
+
+    async def verify_claim(self, claim_text: str, context: str = "") -> dict:
+        """Verifies a claim using Mistral Small."""
+        from app.prompts.auditor import AUDITOR_PROMPT
+
+        prompt = AUDITOR_PROMPT.format(claim_text=claim_text, context=context)
+
+        try:
+            # Using mistral-small for verification as per plan
+            response = await self.client.chat.complete_async(
+                model="mistral-small-latest",
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+                temperature=0.1,
+            )
+            content = response.choices[0].message.content
+            if not isinstance(content, str) or not content:
+                return {"status": "uncertain", "reason": "Empty response from verifier"}
+
+            return json.loads(content)
+        except Exception as e:
+            print(f"Verification error: {e}")
+            return {"status": "uncertain", "reason": f"Verification failed: {str(e)}"}
