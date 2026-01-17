@@ -5,9 +5,10 @@ const elk = new ELK();
 
 const elkOptions = {
   "elk.algorithm": "layered",
-  "elk.layered.spacing.nodeNodeBetweenLayers": "100",
-  "elk.spacing.nodeNode": "80",
+  "elk.layered.spacing.nodeNodeBetweenLayers": "150",
+  "elk.spacing.nodeNode": "100",
   "elk.direction": "DOWN",
+  "elk.layered.edgeRouting": "SPLINES",
 };
 
 export const getLayoutedElements = async (nodes: Node[], edges: Edge[]) => {
@@ -16,10 +17,9 @@ export const getLayoutedElements = async (nodes: Node[], edges: Edge[]) => {
     layoutOptions: elkOptions,
     children: nodes.map((node) => ({
       ...node,
-      // Adjust width/height based on your node dimensions
-      // Ideally these match the actual rendered size
-      width: 250,
-      height: 100,
+      // Narrower width for better reading flow
+      width: 220,
+      height: 140,
     })),
     edges: edges.map((edge) => ({
       ...edge,

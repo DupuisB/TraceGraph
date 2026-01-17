@@ -9,6 +9,7 @@ import ReactFlow, {
   ReactFlowProvider,
   type Connection,
   type Edge,
+  type Node,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { Send, Loader2, Share2, Layers } from "lucide-react";
@@ -45,6 +46,15 @@ const Flow = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
+
+  const onNodeMouseEnter = useCallback((_: any, node: Node) => {
+    setHoveredNode(node);
+  }, []);
+
+  const onNodeMouseLeave = useCallback(() => {
+    setHoveredNode(null);
+  }, []);
 
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
@@ -142,7 +152,8 @@ const Flow = () => {
       id: `e-${idx}`,
       source: e.source,
       target: e.target,
-      type: "default", // 'smoothstep' or 'bezier'
+      type: "smoothstep",
+      label: e.type,
       animated: true,
       style: {
         stroke: e.type === "contradicts" ? "#ef4444" : "#6366f1",
@@ -207,6 +218,8 @@ const Flow = () => {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onNodeMouseEnter={onNodeMouseEnter}
+          onNodeMouseLeave={onNodeMouseLeave}
           nodeTypes={nodeTypes}
           fitView
           className="bg-zinc-950"
@@ -230,6 +243,53 @@ const Flow = () => {
             <Share2 size={20} />
           </button>
         </div>
+
+        {/* Hover Modal Card */}
+        {hoveredNode && (
+          <div className="fixed bottom-6 right-6 z-50 transition-all duration-300 ease-out">
+            <div
+              className="glass-panel p-5 rounded-2xl w-[350px] shadow-2xl border-l-4 animate-in slide-in-from-right-10 fade-in duration-300"
+              style={{
+                borderLeftColor:
+                  hoveredNode.data.verification_status === "verified"
+                    ? "#10b981"
+                    : hoveredNode.data.verification_status === "refuted"
+                      ? "#f43f5e"
+                      : "#6366f1",
+              }}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">
+                  {hoveredNode.type} Details
+                </span>
+                {hoveredNode.data.confidence && (
+                  <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-zinc-300">
+                    {Math.round(hoveredNode.data.confidence * 100)}% Conf
+                  </span>
+                )}
+              </div>
+
+              <h3 className="text-lg font-medium leading-snug mb-3 text-white">
+                {hoveredNode.data.label}
+              </h3>
+
+              {hoveredNode.data.verification_reason && (
+                <div className="bg-black/40 p-3 rounded-lg border border-white/5 text-sm text-zinc-300">
+                  <span className="text-xs font-bold text-zinc-400 block mb-1 uppercase">
+                    Analysis
+                  </span>
+                  {hoveredNode.data.verification_reason}
+                </div>
+              )}
+
+              {hoveredNode.data.source_span && (
+                <div className="mt-3 pt-3 border-t border-white/10 text-xs text-zinc-500 italic">
+                  "{hoveredNode.data.source_span}"
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -35,18 +35,27 @@ const ClaimNode = ({ data }: NodeProps) => {
 
   return (
     <div
-      className={`px-4 py-2 shadow-lg rounded-lg border-2 text-white min-w-[200px] transition-all duration-500 ${getStatusColor()}`}
+      className={`px-4 py-3 shadow-lg rounded-xl border-2 text-white w-[220px] transition-all duration-300 hover:scale-105 ${getStatusColor()}`}
+      title={data.label} // Native tooltip for full text
     >
-      <div className="flex items-center mb-1">
+      <div className="flex items-center mb-2 border-b border-white/10 pb-2">
         {getStatusIcon()}
-        <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+        <span className="text-[10px] uppercase tracking-widest font-bold ml-2 opacity-80">
           Claim
         </span>
       </div>
-      <div className="text-sm font-medium">{data.label}</div>
+
+      {/* Main Text with Clamping */}
+      <div className="text-sm font-medium leading-snug line-clamp-4 text-zinc-100">
+        {data.label}
+      </div>
+
       {data.verification_reason && (
-        <div className="mt-2 text-[10px] text-zinc-400 border-t border-zinc-800 pt-1 italic">
-          {data.verification_reason}
+        <div className="mt-3 text-[10px] leading-relaxed p-2 bg-black/20 rounded border border-white/5">
+          <span className="font-bold opacity-70 block mb-1">Reasoning:</span>
+          <span className="opacity-80 line-clamp-3">
+            {data.verification_reason}
+          </span>
         </div>
       )}
       <Handle
