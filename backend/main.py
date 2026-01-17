@@ -47,34 +47,38 @@ async def process_verification_tasks(
     """Background task to verify all claims in the graph in parallel using Agents."""
     print(f"--> [Auditor Agent] Starting verification ({len(graph.nodes)} nodes)...")
 
-    # Identify claims
-    claims = [node for node in graph.nodes if node.type == "claim"]
+    # Identify nodes to verify (Claims, Evidence, Axioms)
+    # Why verify Axioms? If extracted from text, they are assertions to be checked.
+    nodes_to_verify = [
+        node for node in graph.nodes if node.type in ("claim", "evidence", "axiom")
+    ]
 
     # Initialize verification tasks
     tasks = [
-        agent_service.verify_claim_with_agent(claim.text, context) for claim in claims
+        agent_service.verify_claim_with_agent(node.text, context)
+        for node in nodes_to_verify
     ]
 
     # Execute efficiently in parallel
     results = await asyncio.gather(*tasks)
 
-    for claim, result in zip(claims, results, strict=False):
+    for node, result in zip(nodes_to_verify, results, strict=False):
         status_str = result.get("status", "needs_review").lower()
         reason = result.get("reason", "")
         quote = result.get("quote", None)
         source_url = result.get("source_url", None)
 
         try:
-            claim.verification_status = VerificationStatus(status_str)
+            node.verification_status = VerificationStatus(status_str)
         except ValueError:
             # Fallback to NEEDS_REVIEW if model returns something unexpected
-            claim.verification_status = VerificationStatus.NEEDS_REVIEW
+            node.verification_status = VerificationStatus.NEEDS_REVIEW
 
-        claim.verification_reason = reason
-        claim.verification_quote = quote
-        claim.source_url = source_url
+        node.verification_reason = reason
+        node.verification_quote = quote
+        node.source_url = source_url
         print(
-            f"    - Verified '{claim.id}': {claim.verification_status} "
+            f"    - Verified '{node.id}': {node.verification_status} "
             f"(Source: {source_url})"
         )
 

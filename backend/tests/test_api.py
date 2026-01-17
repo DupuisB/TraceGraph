@@ -106,11 +106,14 @@ def test_get_graph_after_analysis(mock_services):
     # but TestClient runs background tasks synchronously after the request completes!
     # So we can expect verification to have happened.
 
-    claim_node = next(n for n in graph["nodes"] if n["type"] == "claim")
+    claim_node = next(n for n in graph["nodes"] if n["id"] == "node-1")
     assert claim_node["verification_status"] == "verified"
     assert claim_node["verification_reason"] == "Mock agent verification"
     assert claim_node["verification_quote"] == "Mock quote"
     assert claim_node["source_url"] == "http://mock-source.com"
+
+    evidence_node = next(n for n in graph["nodes"] if n["id"] == "node-2")
+    assert evidence_node["verification_status"] == "verified"
 
 
 def test_get_non_existent_graph():
