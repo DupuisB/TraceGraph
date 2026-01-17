@@ -13,7 +13,7 @@ class AgentService:
             raise ConstructionError("MISTRAL_API_KEY not found in environment")
         self.client = Mistral(api_key=api_key)
         self.model = "mistral-large-latest"
-        self.agent_name = "TraceGraph Auditor V2"
+        self.agent_name = "TraceGraph Auditor V3"
 
     async def get_or_create_auditor_agent(self) -> str:
         """
@@ -59,7 +59,7 @@ class AgentService:
     async def verify_claim_with_agent(self, claim_text: str, context: str = "") -> dict:
         """
         Verifies a claim using the agent with web_search tool.
-        Handles the tool call loop until we get a final response.
+        Uses the Conversations API for proper tool execution.
         """
         agent_id = await self.get_or_create_auditor_agent()
 
@@ -80,93 +80,62 @@ Do not include any text before or after the JSON. Do not wrap it in markdown
 code blocks.
 """
 
-        messages: list = [{"role": "user", "content": prompt}]
-        max_iterations = 10  # Prevent infinite loops
-
         try:
-            for iteration in range(max_iterations):
-                print(f"[DEBUG] Agent iteration {iteration + 1}")
+            # Use Conversations API for proper web_search handling
+            response = await self.client.beta.conversations.start_async(
+                agent_id=agent_id,
+                inputs=prompt,
+            )
 
-                response = await self.client.agents.complete_async(
-                    agent_id=agent_id,
-                    messages=messages,  # type: ignore[arg-type]
+            print(f"[DEBUG] Conversation response type: {type(response)}")
+
+            # Extract content from conversation response
+            content_str = ""
+            source_url = None
+
+            # The response has 'outputs' with content chunks
+            if hasattr(response, "outputs"):
+                for output in response.outputs:  # type: ignore[union-attr]
+                    print(f"[DEBUG] Output type: {type(output)}")
+                    if hasattr(output, "content"):
+                        for chunk in output.content:  # type: ignore[union-attr]
+                            # Text chunks
+                            text = getattr(chunk, "text", None)
+                            if text:
+                                content_str += text
+                            # Reference chunks with URLs
+                            url = getattr(chunk, "url", None)
+                            if url:
+                                if not source_url:  # Take the first URL
+                                    source_url = url
+                                    print(f"[DEBUG] Found source URL: {source_url}")
+
+            print(f"[DEBUG] Extracted content: {content_str[:200]}...")
+            print(f"[DEBUG] Extracted source_url: {source_url}")
+
+            if content_str:
+                cleaned_content = (
+                    content_str.replace("```json", "").replace("```", "").strip()
                 )
-
-                choice = response.choices[0]
-                finish_reason = choice.finish_reason
-                message = choice.message
-                content = message.content
-                tool_calls = getattr(message, "tool_calls", None)
-
-                print(f"[DEBUG] Finish reason: {finish_reason}")
-                print(f"[DEBUG] Content: {content}")
-                print(f"[DEBUG] Tool calls: {tool_calls}")
-
-                # Handle content that might be a list or string
-                content_str = ""
-                if isinstance(content, str):
-                    content_str = content
-                elif content:
-                    # Handle List[ContentChunk] - extract text
-                    content_str = str(content)
-
-                # If we have content and finish_reason is 'stop', we're done
-                if finish_reason == "stop" and content_str:
-                    cleaned_content = (
-                        content_str.replace("```json", "").replace("```", "").strip()
-                    )
-                    if cleaned_content:
-                        try:
-                            return json.loads(cleaned_content)
-                        except json.JSONDecodeError as je:
-                            print(f"[ERROR] JSON parse error: {je}")
-                            return {
-                                "status": "needs_review",
-                                "reason": f"Invalid JSON: {str(je)}",
-                                "source_url": None,
-                            }
-
-                # If agent wants to use tools, add the assistant message
-                # and continue (native tools are executed server-side)
-                if tool_calls:
-                    # Add assistant message with tool calls to history
-                    tool_calls_data = [
-                        {
-                            "id": tc.id,
-                            "type": "function",
-                            "function": {
-                                "name": tc.function.name,
-                                "arguments": tc.function.arguments,
-                            },
+                if cleaned_content:
+                    try:
+                        result = json.loads(cleaned_content)
+                        # If we found a source_url from citations, use it
+                        if source_url and not result.get("source_url"):
+                            result["source_url"] = source_url
+                        return result
+                    except json.JSONDecodeError as je:
+                        print(f"[ERROR] JSON parse error: {je}")
+                        print(f"[ERROR] Content: {cleaned_content[:500]}")
+                        return {
+                            "status": "needs_review",
+                            "reason": f"Invalid JSON: {str(je)}",
+                            "source_url": source_url,
                         }
-                        for tc in tool_calls
-                    ]
-                    messages.append(
-                        {
-                            "role": "assistant",
-                            "content": content_str,
-                            "tool_calls": tool_calls_data,
-                        }
-                    )  # type: ignore[arg-type]
-                    # For native web_search, we don't need to provide tool results
-                    # The agent handles this automatically - just continue
-                    continue
 
-                # If we got here with empty content and no tool calls, something
-                # is wrong
-                if not content and not tool_calls:
-                    print("[ERROR] Empty response with no tool calls")
-                    return {
-                        "status": "needs_review",
-                        "reason": "Agent returned empty response",
-                        "source_url": None,
-                    }
-
-            # Max iterations reached
-            print("[ERROR] Max iterations reached")
             return {
                 "status": "needs_review",
-                "reason": "Agent verification timed out",
+                "reason": "Agent returned empty response",
                 "source_url": None,
             }
 
