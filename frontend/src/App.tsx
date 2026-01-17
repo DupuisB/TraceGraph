@@ -22,11 +22,13 @@ import {
   Maximize,
   Lock,
   Unlock,
+  HelpCircle,
 } from "lucide-react";
 
 import ClaimNode from "./components/ClaimNode";
 import EvidenceNode from "./components/EvidenceNode";
 import AxiomNode from "./components/AxiomNode";
+import Guide from "./components/Guide";
 
 const nodeTypes = {
   claim: ClaimNode,
@@ -113,6 +115,7 @@ const Flow = () => {
   const [loading, setLoading] = useState(false);
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
   const [isLocked, setIsLocked] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   const onNodeMouseEnter = useCallback((_: any, node: Node) => {
     setHoveredNode(node);
@@ -315,6 +318,13 @@ const Flow = () => {
         {/* Graph Overlay UI */}
         <div className="absolute top-6 right-6 flex gap-3">
           <button
+            onClick={() => setIsGuideOpen(true)}
+            className="p-3 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-full hover:bg-zinc-800 transition-all text-zinc-400 hover:text-white"
+            title="Help & Legend"
+          >
+            <HelpCircle size={20} />
+          </button>
+          <button
             onClick={() => {
               navigator.clipboard.writeText(window.location.href);
               alert("Link copied to clipboard! (Simulation)");
@@ -325,6 +335,8 @@ const Flow = () => {
             <Share2 size={20} />
           </button>
         </div>
+
+        <Guide isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
 
         {/* Hover Modal Card */}
         {hoveredNode && (
