@@ -58,7 +58,8 @@ class AgentService:
 
     async def verify_claim_with_agent(self, claim_text: str, context: str = "") -> dict:
         """
-        Verifies a claim triggers the agent.
+        Verifies a claim using the agent with web_search tool.
+        Handles the tool call loop until we get a final response.
         """
         agent_id = await self.get_or_create_auditor_agent()
 
@@ -79,46 +80,93 @@ Do not include any text before or after the JSON. Do not wrap it in markdown
 code blocks.
 """
 
+        messages: list = [{"role": "user", "content": prompt}]
+        max_iterations = 10  # Prevent infinite loops
+
         try:
-            # Use the main agents client for completion
-            response = await self.client.agents.complete_async(
-                agent_id=agent_id,
-                messages=[{"role": "user", "content": prompt}],
-            )
+            for iteration in range(max_iterations):
+                print(f"[DEBUG] Agent iteration {iteration + 1}")
 
-            content = response.choices[0].message.content
-
-            # Debug logging
-            print(f"[DEBUG] Agent raw response type: {type(content)}")
-            print(f"[DEBUG] Agent raw response: {content}")
-
-            if isinstance(content, str):
-                cleaned_content = (
-                    content.replace("```json", "").replace("```", "").strip()
+                response = await self.client.agents.complete_async(
+                    agent_id=agent_id,
+                    messages=messages,  # type: ignore[arg-type]
                 )
 
-                if not cleaned_content:
-                    print("[ERROR] Agent returned empty string")
+                choice = response.choices[0]
+                finish_reason = choice.finish_reason
+                message = choice.message
+                content = message.content
+                tool_calls = getattr(message, "tool_calls", None)
+
+                print(f"[DEBUG] Finish reason: {finish_reason}")
+                print(f"[DEBUG] Content: {content}")
+                print(f"[DEBUG] Tool calls: {tool_calls}")
+
+                # Handle content that might be a list or string
+                content_str = ""
+                if isinstance(content, str):
+                    content_str = content
+                elif content:
+                    # Handle List[ContentChunk] - extract text
+                    content_str = str(content)
+
+                # If we have content and finish_reason is 'stop', we're done
+                if finish_reason == "stop" and content_str:
+                    cleaned_content = (
+                        content_str.replace("```json", "").replace("```", "").strip()
+                    )
+                    if cleaned_content:
+                        try:
+                            return json.loads(cleaned_content)
+                        except json.JSONDecodeError as je:
+                            print(f"[ERROR] JSON parse error: {je}")
+                            return {
+                                "status": "needs_review",
+                                "reason": f"Invalid JSON: {str(je)}",
+                                "source_url": None,
+                            }
+
+                # If agent wants to use tools, add the assistant message
+                # and continue (native tools are executed server-side)
+                if tool_calls:
+                    # Add assistant message with tool calls to history
+                    tool_calls_data = [
+                        {
+                            "id": tc.id,
+                            "type": "function",
+                            "function": {
+                                "name": tc.function.name,
+                                "arguments": tc.function.arguments,
+                            },
+                        }
+                        for tc in tool_calls
+                    ]
+                    messages.append(
+                        {
+                            "role": "assistant",
+                            "content": content_str,
+                            "tool_calls": tool_calls_data,
+                        }
+                    )  # type: ignore[arg-type]
+                    # For native web_search, we don't need to provide tool results
+                    # The agent handles this automatically - just continue
+                    continue
+
+                # If we got here with empty content and no tool calls, something
+                # is wrong
+                if not content and not tool_calls:
+                    print("[ERROR] Empty response with no tool calls")
                     return {
                         "status": "needs_review",
                         "reason": "Agent returned empty response",
                         "source_url": None,
                     }
 
-                try:
-                    return json.loads(cleaned_content)
-                except json.JSONDecodeError as je:
-                    print(f"[ERROR] JSON parse error: {je}")
-                    print(f"[ERROR] Cleaned content: {cleaned_content}")
-                    return {
-                        "status": "needs_review",
-                        "reason": f"Agent returned invalid JSON: {str(je)}",
-                        "source_url": None,
-                    }
-
+            # Max iterations reached
+            print("[ERROR] Max iterations reached")
             return {
                 "status": "needs_review",
-                "reason": "Agent returned non-string content",
+                "reason": "Agent verification timed out",
                 "source_url": None,
             }
 
