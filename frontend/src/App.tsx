@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ReactFlow, {
   Background,
   MiniMap,
@@ -109,13 +109,35 @@ const GraphControls = ({
 };
 
 const Flow = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [text, setText] = useState("");
+  // Load initial state from localStorage
+  const savedText = localStorage.getItem("tracegraph-text") || "";
+  const savedNodes = JSON.parse(
+    localStorage.getItem("tracegraph-nodes") || "[]",
+  );
+  const savedEdges = JSON.parse(
+    localStorage.getItem("tracegraph-edges") || "[]",
+  );
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(savedNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(savedEdges);
+  const [text, setText] = useState(savedText);
   const [loading, setLoading] = useState(false);
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
   const [isLocked, setIsLocked] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+
+  // Persistence Effects
+  useEffect(() => {
+    localStorage.setItem("tracegraph-text", text);
+  }, [text]);
+
+  useEffect(() => {
+    localStorage.setItem("tracegraph-nodes", JSON.stringify(nodes));
+  }, [nodes]);
+
+  useEffect(() => {
+    localStorage.setItem("tracegraph-edges", JSON.stringify(edges));
+  }, [edges]);
 
   const onNodeMouseEnter = useCallback((_: any, node: Node) => {
     setHoveredNode(node);

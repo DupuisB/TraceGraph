@@ -5,10 +5,13 @@ const elk = new ELK();
 
 const elkOptions = {
   "elk.algorithm": "layered",
-  "elk.layered.spacing.nodeNodeBetweenLayers": "150",
-  "elk.spacing.nodeNode": "100",
   "elk.direction": "DOWN",
-  "elk.layered.edgeRouting": "SPLINES",
+  "elk.layered.crossingMinimization.strategy": "LAYER_SWEEP",
+  "elk.layered.spacing.nodeNodeBetweenLayers": "100",
+  "elk.spacing.nodeNode": "80",
+  "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
+  "elk.edgeRouting": "POLYLINE",
+  "elk.partitioning.active": "true",
 };
 
 export const getLayoutedElements = async (nodes: Node[], edges: Edge[]) => {

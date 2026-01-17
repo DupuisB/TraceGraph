@@ -4,14 +4,19 @@ import { Scale } from "lucide-react";
 
 const AxiomNode = ({ data }: NodeProps) => {
   return (
-    <div className="px-4 py-2 shadow-lg rounded-lg bg-amber-950/30 border-2 border-amber-500 text-white min-w-[200px]">
-      <div className="flex items-center mb-1">
+    <div
+      className="px-4 py-3 shadow-lg rounded-xl bg-amber-950/60 border-2 border-amber-500 text-white w-[220px] transition-all hover:scale-105"
+      title={data.label}
+    >
+      <div className="flex items-center mb-2 border-b border-white/10 pb-2">
         <Scale size={16} className="text-amber-400 mr-2" />
-        <span className="text-xs font-bold uppercase tracking-wider text-amber-300">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300 opacity-80">
           Axiom
         </span>
       </div>
-      <div className="text-sm font-medium text-amber-50">{data.label}</div>
+      <div className="text-sm font-medium text-amber-50 leading-snug line-clamp-4">
+        {data.label}
+      </div>
       <Handle
         type="source"
         position={Position.Bottom}
