@@ -35,29 +35,35 @@ const ClaimNode = ({ data }: NodeProps) => {
 
   return (
     <div
-      className={`px-4 py-3 shadow-lg rounded-xl border-2 text-white w-[220px] transition-all duration-300 hover:scale-105 ${getStatusColor()}`}
-      title={data.label} // Native tooltip for full text
+      className={`relative group transition-all duration-300 ${
+        data.isOrphaned ? "opacity-50 grayscale" : "hover:scale-105"
+      }`}
     >
-      <div className="flex items-center mb-2 border-b border-white/10 pb-2">
-        {getStatusIcon()}
-        <span className="text-[10px] uppercase tracking-widest font-bold ml-2 opacity-80">
-          Claim
-        </span>
-      </div>
-
-      {/* Main Text with Clamping */}
-      <div className="text-sm font-medium leading-snug line-clamp-4 text-zinc-100">
-        {data.label}
-      </div>
-
-      {data.verification_reason && (
-        <div className="mt-3 text-[10px] leading-relaxed p-2 bg-black/20 rounded border border-white/5">
-          <span className="font-bold opacity-70 block mb-1">Reasoning:</span>
-          <span className="opacity-80 line-clamp-3">
-            {data.verification_reason}
+      <div
+        className={`px-4 py-3 shadow-lg rounded-xl border-2 w-[220px] transition-all relative overflow-hidden ${getStatusColor()}`}
+      >
+        <div className="flex items-center mb-2 border-b border-white/10 pb-2">
+          {getStatusIcon()}
+          <span className="text-[10px] uppercase tracking-widest font-bold ml-2 opacity-80">
+            Claim
           </span>
         </div>
-      )}
+
+        {/* Main Text with Clamping */}
+        <div className="text-sm font-medium leading-snug line-clamp-4 text-zinc-100">
+          {data.label}
+        </div>
+
+        {data.verification_reason && (
+          <div className="mt-3 text-[10px] leading-relaxed p-2 bg-black/20 rounded border border-white/5">
+            <span className="font-bold opacity-70 block mb-1">Reasoning:</span>
+            <span className="opacity-80 line-clamp-3">
+              {data.verification_reason}
+            </span>
+          </div>
+        )}
+      </div>
+
       <Handle
         type="target"
         position={Position.Top}

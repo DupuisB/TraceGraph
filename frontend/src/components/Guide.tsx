@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  ArrowRight,
   Share2,
   Layers,
   Lock,
@@ -18,7 +17,10 @@ const Guide = ({ isOpen, onClose }: GuideProps) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-4xl h-[85vh] bg-zinc-950 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 flex flex-col relative"
         onClick={(e) => e.stopPropagation()}
@@ -177,17 +179,6 @@ const Guide = ({ isOpen, onClose }: GuideProps) => {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="p-6 border-t border-zinc-900 bg-zinc-950 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-8 py-3 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition-colors flex items-center gap-2"
-          >
-            Got it
-            <ArrowRight size={18} />
-          </button>
         </div>
       </div>
     </div>

@@ -5,7 +5,9 @@ import { FileText } from "lucide-react";
 const EvidenceNode = ({ data }: NodeProps) => {
   return (
     <div
-      className="px-4 py-3 shadow-lg rounded-xl bg-slate-900/90 border-2 border-slate-500 text-white w-[220px] transition-all hover:scale-105"
+      className={`px-4 py-3 shadow-lg rounded-xl bg-slate-900/90 border-2 border-slate-500 text-white w-[220px] transition-all ${
+        data.isOrphaned ? "opacity-50 grayscale" : "hover:scale-105"
+      }`}
       title={data.label}
     >
       <div className="flex items-center mb-2 border-b border-white/10 pb-2">
