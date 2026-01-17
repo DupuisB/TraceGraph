@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import ReactFlow, {
   Background,
-  Controls,
   MiniMap,
   useNodesState,
   useEdgesState,
@@ -10,9 +9,20 @@ import ReactFlow, {
   type Connection,
   type Edge,
   type Node,
+  useReactFlow,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { Send, Loader2, Share2, Layers } from "lucide-react";
+import {
+  Send,
+  Loader2,
+  Share2,
+  Layers,
+  Plus,
+  Minus,
+  Maximize,
+  Lock,
+  Unlock,
+} from "lucide-react";
 
 import ClaimNode from "./components/ClaimNode";
 import EvidenceNode from "./components/EvidenceNode";
@@ -41,12 +51,68 @@ interface GraphEdge {
   weight?: number;
 }
 
+const GraphControls = ({
+  isLocked,
+  toggleLock,
+}: {
+  isLocked: boolean;
+  toggleLock: () => void;
+}) => {
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
+
+  return (
+    <div className="absolute bottom-6 left-6 z-10 flex flex-col gap-3">
+      {/* Zoom Group */}
+      <div className="flex flex-col bg-zinc-900/90 backdrop-blur border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
+        <button
+          onClick={() => zoomIn()}
+          className="p-2 hover:bg-white/10 text-white transition-colors"
+          title="Zoom In"
+        >
+          <Plus size={14} />
+        </button>
+        <div className="h-[1px] bg-zinc-800 w-full" />
+        <button
+          onClick={() => zoomOut()}
+          className="p-2 hover:bg-white/10 text-white transition-colors"
+          title="Zoom Out"
+        >
+          <Minus size={14} />
+        </button>
+      </div>
+
+      {/* Fit View */}
+      <button
+        onClick={() => fitView()}
+        className="p-2 bg-zinc-900/90 backdrop-blur border border-zinc-800 rounded-xl text-white hover:bg-white/10 shadow-2xl transition-colors"
+        title="Fit Graph to View"
+      >
+        <Maximize size={14} />
+      </button>
+
+      {/* Map Lock */}
+      <button
+        onClick={toggleLock}
+        className={`p-2 backdrop-blur border rounded-xl shadow-2xl transition-colors ${
+          isLocked
+            ? "bg-indigo-600 border-indigo-500 text-white"
+            : "bg-zinc-900/90 border-zinc-800 text-white hover:bg-white/10"
+        }`}
+        title={isLocked ? "Unlock View" : "Lock View"}
+      >
+        {isLocked ? <Lock size={14} /> : <Unlock size={14} />}
+      </button>
+    </div>
+  );
+};
+
 const Flow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
+  const [isLocked, setIsLocked] = useState(false);
 
   const onNodeMouseEnter = useCallback((_: any, node: Node) => {
     setHoveredNode(node);
@@ -223,9 +289,18 @@ const Flow = () => {
           nodeTypes={nodeTypes}
           fitView
           className="bg-zinc-950"
+          panOnDrag={!isLocked}
+          zoomOnScroll={!isLocked}
+          panOnScroll={!isLocked}
+          zoomOnPinch={!isLocked}
+          zoomOnDoubleClick={!isLocked}
+          nodesDraggable={!isLocked}
         >
           <Background color="#27272a" gap={20} />
-          <Controls className="!bg-zinc-900 !border-zinc-800 !fill-white" />
+          <GraphControls
+            isLocked={isLocked}
+            toggleLock={() => setIsLocked(!isLocked)}
+          />
           <MiniMap
             className="!bg-zinc-900 !border-zinc-800"
             maskColor="rgba(0, 0, 0, 0.7)"
@@ -239,7 +314,14 @@ const Flow = () => {
 
         {/* Graph Overlay UI */}
         <div className="absolute top-6 right-6 flex gap-3">
-          <button className="p-3 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-full hover:bg-zinc-800 transition-all text-zinc-400">
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              alert("Link copied to clipboard! (Simulation)");
+            }}
+            className="p-3 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-full hover:bg-zinc-800 transition-all text-zinc-400 hover:text-white"
+            title="Share Graph"
+          >
             <Share2 size={20} />
           </button>
         </div>
