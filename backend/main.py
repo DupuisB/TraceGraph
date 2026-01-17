@@ -37,6 +37,9 @@ async def analyze(
     service: Annotated[MistralService, Depends(get_mistral_service)],
 ):
     """Analyze a text blob and return a logic graph."""
+    print(
+        f"--> [Analyze] Starting analysis for text ({len(request.text_blob)} chars)..."
+    )
     try:
         return await service.analyze_text(request.text_blob)
     except TraceGraphError as e:
