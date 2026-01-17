@@ -17,27 +17,27 @@ Acyclic Graph (DAG) representing its logical structure.
 4. **JSON Format**: Return ONLY a valid JSON object matching the schema.
 
 ### JSON Schema:
-{
-  "graph_structure": {
+{{
+  "graph_structure": {{
     "root_claim_id": "string",
     "nodes": [
-      {
+      {{
         "id": "string",
         "type": "claim | evidence | axiom",
         "text": "string (concise)",
         "source_span": "string (direct quote if possible)"
-      }
+      }}
     ],
     "edges": [
-      {
+      {{
         "source": "node_id",
         "target": "node_id",
         "type": "supports | contradicts | entails",
         "weight": 1.0
-      }
+      }}
     ]
-  }
-}
+  }}
+}}
 
 ### Input Text:
 {text}

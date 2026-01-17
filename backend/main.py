@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,7 +8,7 @@ from app.exceptions import TraceGraphError
 from app.schemas.graph import AnalysisRequest, AnalysisResponse
 from app.services.mistral_service import MistralService
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
 app = FastAPI(title="TraceGraph API")
 

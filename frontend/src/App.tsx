@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -9,14 +9,14 @@ import ReactFlow, {
   ReactFlowProvider,
   type Connection,
   type Edge,
-  type Node
-} from 'reactflow';
-import 'reactflow/dist/style.css';
-import { Send, Loader2, Share2, Layers } from 'lucide-react';
+  type Node,
+} from "reactflow";
+import "reactflow/dist/style.css";
+import { Send, Loader2, Share2, Layers } from "lucide-react";
 
-import ClaimNode from './components/ClaimNode';
-import EvidenceNode from './components/EvidenceNode';
-import AxiomNode from './components/AxiomNode';
+import ClaimNode from "./components/ClaimNode";
+import EvidenceNode from "./components/EvidenceNode";
+import AxiomNode from "./components/AxiomNode";
 
 const nodeTypes = {
   claim: ClaimNode,
@@ -26,7 +26,7 @@ const nodeTypes = {
 
 interface GraphNode {
   id: string;
-  type: 'claim' | 'evidence' | 'axiom';
+  type: "claim" | "evidence" | "axiom";
   text: string;
   source_span?: string;
   confidence?: number;
@@ -35,19 +35,19 @@ interface GraphNode {
 interface GraphEdge {
   source: string;
   target: string;
-  type: 'supports' | 'contradicts' | 'entails';
+  type: "supports" | "contradicts" | "entails";
   weight?: number;
 }
 
 const Flow = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
 
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    [setEdges],
   );
 
   const analyzeText = async () => {
@@ -55,39 +55,47 @@ const Flow = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8000/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:8000/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text_blob: text }),
       });
 
-      if (!response.ok) throw new Error('Analysis failed');
+      if (!response.ok) throw new Error("Analysis failed");
 
       const data = await response.json();
       const structure = data.graph_structure;
 
       // Basic layout logic (simple row-based for nodes)
-      const newNodes: Node[] = structure.nodes.map((n: GraphNode, idx: number) => ({
-        id: n.id,
-        type: n.type,
-        data: { label: n.text, source_span: n.source_span, confidence: n.confidence },
-        position: { x: 250, y: idx * 150 }, // Initial vertical layout
-      }));
+      const newNodes: Node[] = structure.nodes.map(
+        (n: GraphNode, idx: number) => ({
+          id: n.id,
+          type: n.type,
+          data: {
+            label: n.text,
+            source_span: n.source_span,
+            confidence: n.confidence,
+          },
+          position: { x: 250, y: idx * 150 }, // Initial vertical layout
+        }),
+      );
 
-      const newEdges: Edge[] = structure.edges.map((e: GraphEdge, idx: number) => ({
-        id: `e-${idx}`,
-        source: e.source,
-        target: e.target,
-        label: e.type,
-        animated: true,
-        style: { stroke: e.type === 'contradicts' ? '#ef4444' : '#6366f1' },
-      }));
+      const newEdges: Edge[] = structure.edges.map(
+        (e: GraphEdge, idx: number) => ({
+          id: `e-${idx}`,
+          source: e.source,
+          target: e.target,
+          label: e.type,
+          animated: true,
+          style: { stroke: e.type === "contradicts" ? "#ef4444" : "#6366f1" },
+        }),
+      );
 
       setNodes(newNodes);
       setEdges(newEdges);
     } catch (error) {
-      console.error('Error analyzing text:', error);
-      alert('Failed to analyze text. Is the backend running?');
+      console.error("Error analyzing text:", error);
+      alert("Failed to analyze text. Is the backend running?");
     } finally {
       setLoading(false);
     }
@@ -105,7 +113,9 @@ const Flow = () => {
         </div>
 
         <div className="flex-1 flex flex-col gap-4">
-          <label className="text-sm font-medium text-zinc-400">Input Context</label>
+          <label className="text-sm font-medium text-zinc-400">
+            Input Context
+          </label>
           <textarea
             className="flex-1 bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none placeholder:text-zinc-600 transition-all"
             placeholder="Paste your text here (e.g., a news article or reasoning chain)..."
@@ -122,7 +132,7 @@ const Flow = () => {
             ) : (
               <Send size={18} />
             )}
-            {loading ? 'Analyzing...' : 'Analyze Argument'}
+            {loading ? "Analyzing..." : "Analyze Argument"}
           </button>
         </div>
 
@@ -150,9 +160,9 @@ const Flow = () => {
             className="!bg-zinc-900 !border-zinc-800"
             maskColor="rgba(0, 0, 0, 0.7)"
             nodeColor={(n) => {
-              if (n.type === 'claim') return '#6366f1';
-              if (n.type === 'evidence') return '#10b981';
-              return '#f59e0b';
+              if (n.type === "claim") return "#6366f1";
+              if (n.type === "evidence") return "#10b981";
+              return "#f59e0b";
             }}
           />
         </ReactFlow>
