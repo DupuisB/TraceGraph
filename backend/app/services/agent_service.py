@@ -63,12 +63,21 @@ class AgentService:
         agent_id = await self.get_or_create_auditor_agent()
 
         prompt = f"""
-        Context: {context}
+Context: {context}
 
-        Claim to verify: {claim_text}
+Claim to verify: {claim_text}
 
-        Return the JSON Verdict.
-        """
+IMPORTANT: You MUST return ONLY a valid JSON object with this exact structure:
+{{
+  "status": "verified" | "refuted" | "needs_review",
+  "reason": "Brief explanation",
+  "quote": "Exact quote from source",
+  "source_url": "URL if web_search was used, otherwise null"
+}}
+
+Do not include any text before or after the JSON. Do not wrap it in markdown
+code blocks.
+"""
 
         try:
             # Use the main agents client for completion
@@ -78,11 +87,34 @@ class AgentService:
             )
 
             content = response.choices[0].message.content
+
+            # Debug logging
+            print(f"[DEBUG] Agent raw response type: {type(content)}")
+            print(f"[DEBUG] Agent raw response: {content}")
+
             if isinstance(content, str):
                 cleaned_content = (
                     content.replace("```json", "").replace("```", "").strip()
                 )
-                return json.loads(cleaned_content)
+
+                if not cleaned_content:
+                    print("[ERROR] Agent returned empty string")
+                    return {
+                        "status": "needs_review",
+                        "reason": "Agent returned empty response",
+                        "source_url": None,
+                    }
+
+                try:
+                    return json.loads(cleaned_content)
+                except json.JSONDecodeError as je:
+                    print(f"[ERROR] JSON parse error: {je}")
+                    print(f"[ERROR] Cleaned content: {cleaned_content}")
+                    return {
+                        "status": "needs_review",
+                        "reason": f"Agent returned invalid JSON: {str(je)}",
+                        "source_url": None,
+                    }
 
             return {
                 "status": "needs_review",
