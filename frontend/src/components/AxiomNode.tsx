@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Handle, Position, type NodeProps } from "reactflow";
 import { Gem, CheckCircle2, XCircle, Eye, Loader2 } from "lucide-react";
 
-const AxiomNode = ({ data, selected }: NodeProps) => {
+const AxiomNode = ({ data }: NodeProps) => {
   const status = data.verification_status || "pending";
 
   const getStatusColor = () => {
@@ -35,9 +35,7 @@ const AxiomNode = ({ data, selected }: NodeProps) => {
     <div
       className={`relative group transition-all duration-300 ${getStatusColor()}
                   rounded-lg border px-4 py-3 shadow-lg backdrop-blur-sm
-                  min-w-[200px] max-w-[300px] ${
-                    selected ? "z-50 scale-105" : "z-0 hover:scale-105"
-                  }`}
+                  min-w-[200px] max-w-[300px] hover:scale-105`}
     >
       <Handle
         type="target"
@@ -54,56 +52,15 @@ const AxiomNode = ({ data, selected }: NodeProps) => {
             </span>
             {getStatusIcon()}
           </div>
-
-          <p
-            className={`text-sm text-slate-200 leading-relaxed ${selected ? "" : "line-clamp-3"}`}
-          >
+          <p className="text-sm text-slate-200 leading-relaxed line-clamp-4">
             {data.text}
           </p>
-
           {data.verification_reason && (
-            <>
-              {!selected && (
-                <div className="mt-2 text-[10px] text-zinc-500 flex items-center gap-1 opacity-70">
-                  <span className="w-1 h-1 rounded-full bg-zinc-500" />
-                  Click for details
-                </div>
-              )}
-
-              <div
-                className={`transition-all duration-300 overflow-hidden ${
-                  selected
-                    ? "max-h-[300px] opacity-100 mt-2"
-                    : "max-h-0 opacity-0 mt-0"
-                }`}
-              >
-                <p className="text-xs text-slate-400 italic border-t border-white/10 pt-2">
-                  {data.verification_reason}
-                </p>
-
-                {/* Citations */}
-                {data.citations && data.citations.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-white/5">
-                    <div className="flex flex-wrap gap-1">
-                      {data.citations
-                        .slice(0, 3)
-                        .map((citation: any, i: number) => (
-                          <a
-                            key={i}
-                            href={citation.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[10px] text-purple-400 hover:text-purple-300 underline truncate max-w-[180px] block"
-                            title={citation.title}
-                          >
-                            {citation.title || "Source"}
-                          </a>
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
+            <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-zinc-400 opacity-70">
+              <span className="truncate max-w-[120px]">
+                {data.verification_reason}
+              </span>
+            </div>
           )}
         </div>
       </div>

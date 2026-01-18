@@ -33,6 +33,7 @@ import ClaimNode from "./components/ClaimNode";
 import EvidenceNode from "./components/EvidenceNode";
 import AxiomNode from "./components/AxiomNode";
 import Guide from "./components/Guide";
+import NodeDetailsCard from "./components/NodeDetailsCard";
 
 const nodeTypes = {
   claim: ClaimNode,
@@ -457,6 +458,10 @@ const Flow = () => {
           <GraphControls
             isLocked={isLocked}
             toggleLock={() => setIsLocked(!isLocked)}
+          />
+          <NodeDetailsCard
+            node={selectedNode}
+            onClose={() => setSelectedNode(null)}
           />
           <MiniMap
             className="!bg-zinc-900 !border-zinc-800"
