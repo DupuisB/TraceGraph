@@ -1,0 +1,73 @@
+import { memo } from "react";
+import { Handle, Position, type NodeProps } from "reactflow";
+import { FileText, CheckCircle2, XCircle, Eye, Loader2 } from "lucide-react";
+
+const EvidenceNode = ({ data }: NodeProps) => {
+  const status = data.verification_status || "pending";
+
+  const getStatusColor = () => {
+    switch (status) {
+      case "verified":
+        return "bg-blue-950/50 border-blue-400 shadow-blue-500/20";
+      case "refuted":
+        return "bg-rose-950/50 border-rose-500 shadow-rose-500/20";
+      case "needs_review":
+        return "bg-amber-950/50 border-amber-500 border-dashed shadow-amber-500/20";
+      default:
+        return "bg-slate-900 border-blue-400/50";
+    }
+  };
+
+  const getStatusIcon = () => {
+    switch (status) {
+      case "verified":
+        return <CheckCircle2 size={14} className="text-emerald-400" />;
+      case "refuted":
+        return <XCircle size={14} className="text-rose-400" />;
+      case "needs_review":
+        return <Eye size={14} className="text-amber-400" />;
+      default:
+        return <Loader2 size={14} className="text-blue-400 animate-spin" />;
+    }
+  };
+
+  return (
+    <div
+      className={`relative group transition-all duration-300 ${getStatusColor()} 
+                  rounded-lg border px-4 py-3 shadow-lg backdrop-blur-sm
+                  min-w-[200px] max-w-[300px]`}
+    >
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="!w-2 !h-2 !bg-blue-400 !border-slate-800 !-top-1"
+      />
+
+      <div className="flex items-start gap-2">
+        <FileText className="text-blue-400 mt-0.5 shrink-0" size={16} />
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] uppercase tracking-wider text-blue-300 opacity-70 font-medium">
+              Evidence
+            </span>
+            {getStatusIcon()}
+          </div>
+          <p className="text-sm text-slate-200 leading-relaxed">{data.text}</p>
+          {data.verification_reason && (
+            <p className="text-xs text-slate-400 mt-2 italic">
+              {data.verification_reason}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className="!w-2 !h-2 !bg-blue-400 !border-slate-800 !-bottom-1"
+      />
+    </div>
+  );
+};
+
+export default memo(EvidenceNode);

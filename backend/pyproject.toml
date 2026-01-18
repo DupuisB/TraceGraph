@@ -29,6 +29,10 @@ exclude = ["**/node_modules", "**/__pycache__", ".venv"]
 pythonVersion = "3.13"
 typeCheckingMode = "basic"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
 [dependency-groups]
 dev = [
     "httpx>=0.28.1",
