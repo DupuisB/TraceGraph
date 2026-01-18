@@ -12,8 +12,8 @@ const ClaimNode = ({ data }: NodeProps) => {
       case "refuted":
         return "bg-rose-950/50 border-rose-500 shadow-rose-500/20";
       case "needs_review":
-        // Research-backed: Neutral styling to avoid "False Security" of warning colors
-        return "bg-slate-900 border-slate-500 border-dashed opacity-80";
+        // Yellow to indicate human attention needed
+        return "bg-amber-950/50 border-amber-500 border-dashed shadow-amber-500/20";
       default:
         // Default covers pending/uncertain
         return "bg-zinc-900 border-indigo-500";
@@ -27,7 +27,7 @@ const ClaimNode = ({ data }: NodeProps) => {
       case "refuted":
         return <XCircle size={16} className="text-rose-400 mr-2" />;
       case "needs_review":
-        return <Eye size={16} className="text-slate-400 mr-2" />;
+        return <Eye size={16} className="text-amber-400 mr-2" />;
       default:
         return (
           <Loader2 size={16} className="text-indigo-400 mr-2 animate-spin" />

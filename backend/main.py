@@ -68,11 +68,14 @@ async def process_verification_tasks(
     print(f"--> [Auditor] Starting verification ({len(graph.nodes)} nodes)...")
     print(f"    Web Search Enabled: {ENABLE_WEB_SEARCH}")
 
-    # Identify claims
-    claims = [node for node in graph.nodes if node.type == "claim"]
+    # Verify claims AND evidence/axioms that may contain verifiable facts
+    # The ClaimRouter will determine if each needs web search or logic check
+    verifiable = [
+        node for node in graph.nodes if node.type in ("claim", "evidence", "axiom")
+    ]
 
-    # Verify all claims in parallel using orchestrator
-    tasks = [orchestrator.verify_claim(claim, context) for claim in claims]
+    # Verify all nodes in parallel using orchestrator
+    tasks = [orchestrator.verify_claim(node, context) for node in verifiable]
     await asyncio.gather(*tasks)
 
     # Update the store with the fully verified graph

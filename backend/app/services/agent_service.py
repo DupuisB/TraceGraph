@@ -123,23 +123,41 @@ Search the web and provide your verdict as JSON only."""
                     content_list = getattr(output, "content", [])
 
                     for chunk in content_list:
-                        # Handle objects with 'text' attribute (TextChunk)
-                        if hasattr(chunk, "text"):
+                        chunk_class = type(chunk).__name__
+
+                        # ToolReferenceChunk - contains citation info
+                        if chunk_class == "ToolReferenceChunk":
+                            url = getattr(chunk, "url", "")
+                            title = getattr(chunk, "title", "")
+                            if url:
+                                citations.append(
+                                    {
+                                        "title": title or "Source",
+                                        "url": url,
+                                        "source": getattr(chunk, "description", ""),
+                                    }
+                                )
+                        # TextChunk - contains text content
+                        elif chunk_class == "TextChunk":
                             text = getattr(chunk, "text", "")
                             if text:
                                 final_text += text
-                        # Handle objects with 'url' attribute (ToolReference)
+                        # Handle plain strings (streaming chars)
+                        elif isinstance(chunk, str):
+                            final_text += chunk
+                        # Fallback: check for url/text attributes
                         elif hasattr(chunk, "url"):
                             citations.append(
                                 {
-                                    "title": getattr(chunk, "title", ""),
+                                    "title": getattr(chunk, "title", "Source"),
                                     "url": getattr(chunk, "url", ""),
                                     "source": getattr(chunk, "source", ""),
                                 }
                             )
-                        # Handle plain strings (common case)
-                        elif isinstance(chunk, str):
-                            final_text += chunk
+                        elif hasattr(chunk, "text"):
+                            text = getattr(chunk, "text", "")
+                            if text:
+                                final_text += text
 
             # Parse JSON verdict from response text
             try:
