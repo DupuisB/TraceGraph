@@ -137,3 +137,9 @@ When enabled, the system:
 *   **Cost:** Avoid Tavily/Serper API fees.
 *   **Simplicity:** One SDK, one auth mechanism.
 *   **Enterprise:** Mistral handles compliance and rate limits.
+
+### Debugging the Agents API
+*   **Problem:** Initial implementation crashed with `'ConversationResponse' has no attribute 'entries'`.
+*   **Discovery:** The Mistral SDK uses `response.outputs` (not `entries` as suggested in some docs).
+*   **Fix:** Created a test script to inspect the actual response structure, then rewrote parsing logic.
+*   **Lesson:** Always verify SDK behavior against actual API calls, not just documentation.
