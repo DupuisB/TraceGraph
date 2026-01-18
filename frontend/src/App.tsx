@@ -147,6 +147,8 @@ const Flow = () => {
   const [editValue, setEditValue] = useState("");
   const [isLocked, setIsLocked] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  // Add web search toggle state (default true for V2)
+  const [enableWebSearch, setEnableWebSearch] = useState(true);
 
   // Persistence Effects
   useEffect(() => {
@@ -201,7 +203,10 @@ const Flow = () => {
       const response = await fetch("http://localhost:8000/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text_blob: text }),
+        body: JSON.stringify({
+          text_blob: text,
+          enable_web_search: enableWebSearch,
+        }),
       });
 
       if (!response.ok) throw new Error("Analysis failed");
@@ -384,6 +389,28 @@ const Flow = () => {
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
+
+          <div className="flex items-center justify-between bg-zinc-900/40 p-3 rounded-lg border border-zinc-800/50">
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-9 h-5 rounded-full relative transition-colors duration-200 cursor-pointer ${enableWebSearch ? "bg-indigo-600" : "bg-zinc-700"}`}
+                onClick={() => setEnableWebSearch(!enableWebSearch)}
+              >
+                <div
+                  className={`absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform duration-200 ${enableWebSearch ? "translate-x-4" : "translate-x-0"}`}
+                />
+              </div>
+              <span className="text-zinc-400 text-xs font-medium">
+                Enable Web Search Verification
+              </span>
+            </div>
+            {enableWebSearch && (
+              <span className="text-[10px] text-indigo-400 bg-indigo-950/30 px-2 py-0.5 rounded border border-indigo-900/50">
+                Active
+              </span>
+            )}
+          </div>
+
           <button
             onClick={analyzeText}
             disabled={loading || !text.trim()}

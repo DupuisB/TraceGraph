@@ -44,10 +44,21 @@ def get_mistral_service() -> MistralService:
 
 def get_orchestrator(
     mistral_service: MistralService,
+    enable_web_search: bool | None = None,
 ) -> VerificationOrchestrator:
-    """Create orchestrator with optional web search."""
+    """Create orchestrator with optional web search.
+
+    Args:
+        mistral_service: The MistralService instance.
+        enable_web_search: Override for web search. None = use env default.
+    """
+    # Use request override if provided, else fall back to env var
+    web_search_enabled = (
+        enable_web_search if enable_web_search is not None else ENABLE_WEB_SEARCH
+    )
+
     agent_service = None
-    if ENABLE_WEB_SEARCH:
+    if web_search_enabled:
         from app.services.agent_service import AgentService
 
         agent_service = AgentService()
@@ -55,7 +66,7 @@ def get_orchestrator(
     return VerificationOrchestrator(
         mistral_service=mistral_service,
         agent_service=agent_service,
-        enable_web_search=ENABLE_WEB_SEARCH,
+        enable_web_search=web_search_enabled,
     )
 
 
@@ -110,7 +121,7 @@ async def analyze(
             )
 
         # Schedule background verification (V2: use orchestrator)
-        orchestrator = get_orchestrator(service)
+        orchestrator = get_orchestrator(service, request.enable_web_search)
         background_tasks.add_task(
             process_verification_tasks,
             response.graph_structure,

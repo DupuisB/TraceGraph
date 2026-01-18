@@ -63,8 +63,16 @@ class GraphStructure(BaseModel):
 
 
 class AnalysisRequest(BaseModel):
+    """Request to analyze text and generate argument graph."""
+
     text_blob: str = Field(..., max_length=100000)
+    enable_web_search: bool | None = Field(
+        default=None,
+        description="Enable web search for verification. None = use server default.",
+    )
 
 
 class AnalysisResponse(BaseModel):
+    """Response containing the generated argument graph."""
+
     graph_structure: GraphStructure
