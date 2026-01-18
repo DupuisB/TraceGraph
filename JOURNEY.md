@@ -138,8 +138,58 @@ When enabled, the system:
 *   **Simplicity:** One SDK, one auth mechanism.
 *   **Enterprise:** Mistral handles compliance and rate limits.
 
-### Debugging the Agents API
-*   **Problem:** Initial implementation crashed with `'ConversationResponse' has no attribute 'entries'`.
-*   **Discovery:** The Mistral SDK uses `response.outputs` (not `entries` as suggested in some docs).
-*   **Fix:** Created a test script to inspect the actual response structure, then rewrote parsing logic.
-*   **Lesson:** Always verify SDK behavior against actual API calls, not just documentation.
+### Debugging the Agents API: A Case Study
+
+**The Initial Error:**
+```
+'ConversationResponse' object has no attribute 'entries'
+```
+
+**Investigation Process:**
+1.  **Documentation Mismatch:** The Mistral docs mentioned `response.entries`, but the SDK returned `response.outputs`.
+2.  **Inspection Script:** We created `scripts/inspect_agent_response.py` to make a real API call and inspect the actual response structure:
+    ```python
+    print(f"Response fields: {response.model_fields.keys()}")
+    # Output: dict_keys(['conversation_id', 'outputs', 'usage', 'object'])
+    ```
+3.  **Chunk Structure Discovery:** The `MessageOutputEntry.content` contained 890 chunks, but they were **plain strings**, not typed objects with a `type` attribute:
+    ```
+    First chunk class: str
+    First chunk repr: '`'
+    ```
+
+**The Fix:**
+Instead of checking `chunk.type == "text"`, we check:
+```python
+if isinstance(chunk, str):
+    final_text += chunk
+elif hasattr(chunk, "text"):
+    final_text += getattr(chunk, "text", "")
+```
+
+**Key Lesson:** Beta APIs evolve—always verify SDK behavior against actual API calls, not just documentation. Type hints in beta packages may be incomplete.
+
+### Testing the Integration
+
+**Manual Test Script:** `scripts/test_web_search.py`
+```bash
+# With web search enabled:
+uv run scripts/test_web_search.py
+
+# Output:
+✅ [VERIFIED] These developments mark a significant shift in the AI landsc...
+   Reason: Recent developments in the AI landscape have indeed marked...
+```
+
+**Automated Tests:** Updated `tests/test_api.py` with fixtures that disable web search during unit tests to use the mocked `MistralService`.
+
+---
+
+## 10. What's Next: Phase 3 (Fractal Reasoning)
+
+**Goal:** Allow users to "drill down" into complex claims.
+*   Double-click a claim to trigger recursive analysis.
+*   Display sub-claims in a modal or nested graph.
+*   Track depth to prevent infinite recursion.
+
+**Status:** Planned, not yet implemented.
