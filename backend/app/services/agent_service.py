@@ -5,6 +5,7 @@ Uses the native web_search tool to verify claims against live web data,
 solving the "stale knowledge" limitation of standard LLM calls.
 """
 
+import json
 import os
 from typing import TypedDict
 
@@ -40,20 +41,19 @@ class AgentService:
             model="mistral-medium-2505",
             name="TraceGraph Fact Auditor",
             description="Agent that verifies factual claims using web search.",
-            instructions="""You are a strict Fact Auditor with web search capabilities.
+            instructions="""You are a strict Fact Auditor with web search.
 
 Your task is to verify factual claims by searching the web for evidence.
 
 ### Instructions:
 1. Use web_search to find recent, authoritative sources.
 2. Compare the claim against retrieved information.
-3. Return a JSON verdict with citations.
+3. Return your verdict as JSON.
 
-### Response Format (JSON):
+### Response Format (JSON only, no other text):
 {
-  "status": "verified | refuted | needs_review",
-  "reason": "Brief explanation with evidence",
-  "sources_used": ["url1", "url2"]
+  "status": "verified" or "refuted" or "needs_review",
+  "reason": "Brief explanation with evidence"
 }
 """,
             tools=[{"type": "web_search"}],
@@ -85,9 +85,7 @@ Your task is to verify factual claims by searching the web for evidence.
 
 Claim: {claim_text}
 
-Original Context (for reference): {context[:500] if context else "None provided"}
-
-Search the web and provide your verdict as JSON."""
+Search the web and provide your verdict as JSON only."""
 
         try:
             response = self.client.beta.conversations.start(
@@ -95,17 +93,26 @@ Search the web and provide your verdict as JSON."""
                 inputs=prompt,
             )
 
-            # Parse the response entries
-            # Note: Beta API types are incomplete, using type: ignore
+            # Parse the response outputs
+            # response.outputs is a list of ToolExecutionEntry or MessageOutputEntry
             citations: list[dict] = []
             final_text = ""
 
-            for entry in response.entries:  # type: ignore[attr-defined]
-                if entry.type == "message.output":
-                    for chunk in entry.content:
-                        if chunk.type == "text":
-                            final_text += chunk.text
-                        elif chunk.type == "tool_reference":
+            for output in response.outputs:
+                # Check output type using the 'type' attribute
+                output_type = getattr(output, "type", "")
+
+                if output_type == "message.output":
+                    # This is a MessageOutputEntry with content
+                    content_list = getattr(output, "content", [])
+                    for chunk in content_list:
+                        chunk_type = getattr(chunk, "type", "")
+                        if chunk_type == "text":
+                            # TextChunk - extract the text
+                            text = getattr(chunk, "text", "")
+                            final_text += text
+                        elif chunk_type == "tool_reference":
+                            # Reference chunk from web search
                             citations.append(
                                 {
                                     "title": getattr(chunk, "title", ""),
@@ -114,9 +121,7 @@ Search the web and provide your verdict as JSON."""
                                 }
                             )
 
-            # Parse JSON from response
-            import json
-
+            # Parse JSON from response text
             try:
                 # Try to extract JSON from the response
                 json_start = final_text.find("{")
@@ -124,9 +129,15 @@ Search the web and provide your verdict as JSON."""
                 if json_start != -1 and json_end > json_start:
                     result_data = json.loads(final_text[json_start:json_end])
                 else:
-                    result_data = {"status": "needs_review", "reason": final_text}
+                    result_data = {
+                        "status": "needs_review",
+                        "reason": final_text[:500] if final_text else "No response",
+                    }
             except json.JSONDecodeError:
-                result_data = {"status": "needs_review", "reason": final_text}
+                result_data = {
+                    "status": "needs_review",
+                    "reason": final_text[:500] if final_text else "Parse error",
+                }
 
             return VerificationResult(
                 status=result_data.get("status", "needs_review"),
