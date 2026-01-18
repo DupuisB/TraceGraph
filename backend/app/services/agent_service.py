@@ -3,6 +3,11 @@ AgentService: Mistral Agents API integration for factual verification.
 
 Uses the native web_search tool to verify claims against live web data,
 solving the "stale knowledge" limitation of standard LLM calls.
+
+API Reference:
+- Agents: https://docs.mistral.ai/api/endpoint/beta/agents
+- Conversations: https://docs.mistral.ai/api/endpoint/beta/conversations
+- Web Search: https://docs.mistral.ai/agents/tools/built-in/websearch
 """
 
 import json
@@ -22,9 +27,14 @@ class VerificationResult(TypedDict):
 
 
 class AgentService:
-    """Service for creating and managing Mistral Agents with web search."""
+    """Service for creating and managing Mistral Agents with web search.
+
+    Uses the Mistral Beta Agents API to create an agent with web_search
+    capability for fact verification.
+    """
 
     def __init__(self) -> None:
+        """Initialize the AgentService with Mistral client."""
         api_key = os.getenv("MISTRAL_API_KEY")
         if not api_key:
             raise ValueError("MISTRAL_API_KEY not found in environment")
@@ -32,11 +42,16 @@ class AgentService:
         self._agent_id: str | None = None
 
     async def _ensure_agent_exists(self) -> str:
-        """Create or retrieve the Auditor Agent."""
+        """Create or retrieve the Auditor Agent.
+
+        Returns:
+            The agent ID for the TraceGraph Fact Auditor.
+        """
         if self._agent_id:
             return self._agent_id
 
-        # Create the agent with web_search capability
+        # Create agent with web_search tool (Beta API)
+        # Ref: https://docs.mistral.ai/api/endpoint/beta/agents
         agent = self.client.beta.agents.create(
             model="mistral-medium-2505",
             name="TraceGraph Fact Auditor",
@@ -88,31 +103,33 @@ Claim: {claim_text}
 Search the web and provide your verdict as JSON only."""
 
         try:
+            # Start conversation with agent (Beta API)
+            # Ref: https://docs.mistral.ai/api/endpoint/beta/conversations
             response = self.client.beta.conversations.start(
                 agent_id=agent_id,
                 inputs=prompt,
             )
 
-            # Parse the response outputs
-            # response.outputs is a list of ToolExecutionEntry or MessageOutputEntry
+            # Parse response.outputs list
+            # Contains: ToolExecutionEntry, MessageOutputEntry
             citations: list[dict] = []
             final_text = ""
 
             for output in response.outputs:
-                # Check output type using the 'type' attribute
                 output_type = getattr(output, "type", "")
 
                 if output_type == "message.output":
-                    # This is a MessageOutputEntry with content
+                    # MessageOutputEntry.content is a list of chunks
                     content_list = getattr(output, "content", [])
+
                     for chunk in content_list:
-                        chunk_type = getattr(chunk, "type", "")
-                        if chunk_type == "text":
-                            # TextChunk - extract the text
+                        # Handle objects with 'text' attribute (TextChunk)
+                        if hasattr(chunk, "text"):
                             text = getattr(chunk, "text", "")
-                            final_text += text
-                        elif chunk_type == "tool_reference":
-                            # Reference chunk from web search
+                            if text:
+                                final_text += text
+                        # Handle objects with 'url' attribute (ToolReference)
+                        elif hasattr(chunk, "url"):
                             citations.append(
                                 {
                                     "title": getattr(chunk, "title", ""),
@@ -120,10 +137,12 @@ Search the web and provide your verdict as JSON only."""
                                     "source": getattr(chunk, "source", ""),
                                 }
                             )
+                        # Handle plain strings (common case)
+                        elif isinstance(chunk, str):
+                            final_text += chunk
 
-            # Parse JSON from response text
+            # Parse JSON verdict from response text
             try:
-                # Try to extract JSON from the response
                 json_start = final_text.find("{")
                 json_end = final_text.rfind("}") + 1
                 if json_start != -1 and json_end > json_start:
