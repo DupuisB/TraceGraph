@@ -23,10 +23,6 @@ import {
   Lock,
   Unlock,
   HelpCircle,
-  Pencil,
-  Trash2,
-  Check,
-  X,
 } from "lucide-react";
 
 import ClaimNode from "./components/ClaimNode";
@@ -144,8 +140,6 @@ const Flow = () => {
   const [loading, setLoading] = useState(false);
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState("");
   const [isLocked, setIsLocked] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   // Add web search toggle state (default true for V2)
@@ -183,12 +177,10 @@ const Flow = () => {
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
     setHoveredNode(null); // Clear hover to avoid conflict
-    setIsEditing(false); // Reset edit mode
   }, []);
 
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
-    setIsEditing(false);
   }, []);
 
   const onConnect = useCallback(
@@ -228,61 +220,6 @@ const Flow = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleEditNode = (nodeId: string, newLabel: string) => {
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === nodeId) {
-          return {
-            ...node,
-            data: { ...node.data, label: newLabel },
-          };
-        }
-        return node;
-      }),
-    );
-  };
-
-  const handleDeleteNode = (nodeId: string) => {
-    // 1. Identify all descendants (orphans)
-    const descendants = new Set<string>();
-    const stack = [nodeId];
-
-    while (stack.length > 0) {
-      const current = stack.pop()!;
-      if (current !== nodeId) descendants.add(current); // Don't add self to orphans
-
-      const children = edges
-        .filter((e) => e.source === current)
-        .map((e) => e.target);
-
-      stack.push(...children);
-    }
-
-    // 2. Remove the deleted node
-    setNodes((nds) => {
-      const remainingNodes = nds.filter((n) => n.id !== nodeId);
-
-      // 3. Mark descendants as orphaned
-      return remainingNodes.map((n) => {
-        if (descendants.has(n.id)) {
-          return {
-            ...n,
-            data: { ...n.data, isOrphaned: true },
-          };
-        }
-        return n;
-      });
-    });
-
-    // 4. Remove connected edges
-    setEdges((eds) =>
-      eds.filter((e) => e.source !== nodeId && e.target !== nodeId),
-    );
-
-    // Close modal if open
-    setHoveredNode(null);
   };
 
   const pollGraphStatus = (graphId: string) => {
@@ -460,7 +397,7 @@ const Flow = () => {
             toggleLock={() => setIsLocked(!isLocked)}
           />
           <NodeDetailsCard
-            node={selectedNode}
+            node={selectedNode || hoveredNode}
             onClose={() => setSelectedNode(null)}
           />
           <MiniMap
@@ -496,143 +433,6 @@ const Flow = () => {
         </div>
 
         <Guide isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} />
-
-        {/* Hover/Selection Modal Card */}
-        {(selectedNode || hoveredNode) && (
-          <div className="fixed bottom-6 right-6 z-50 transition-all duration-300 ease-out">
-            <div
-              className="glass-panel p-5 rounded-2xl w-[350px] shadow-2xl border-l-4 animate-in slide-in-from-right-10 fade-in duration-300"
-              style={{
-                borderLeftColor:
-                  (selectedNode || hoveredNode)!.data.verification_status ===
-                  "verified"
-                    ? "#10b981"
-                    : (selectedNode || hoveredNode)!.data
-                          .verification_status === "refuted"
-                      ? "#f43f5e"
-                      : "#6366f1",
-              }}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">
-                  {(selectedNode || hoveredNode)!.type} Details
-                </span>
-                {(selectedNode || hoveredNode)!.data.confidence && (
-                  <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded text-zinc-300">
-                    {Math.round(
-                      (selectedNode || hoveredNode)!.data.confidence! * 100,
-                    )}
-                    % Conf
-                  </span>
-                )}
-              </div>
-
-              {isEditing ? (
-                <div className="mb-4">
-                  <textarea
-                    className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-y min-h-[100px]"
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    autoFocus
-                  />
-                  <div className="flex gap-2 justify-end mt-2">
-                    <button
-                      onClick={() => setIsEditing(false)}
-                      className="p-2 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
-                    >
-                      <X size={14} />
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (selectedNode) {
-                          handleEditNode(selectedNode.id, editValue);
-                          setIsEditing(false);
-                          // Update local selected node data to reflect change immediately in UI if needed,
-                          // but reacting to nodes state change is better.
-                          setSelectedNode((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  data: { ...prev.data, label: editValue },
-                                }
-                              : null,
-                          );
-                        }
-                      }}
-                      className="p-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
-                    >
-                      <Check size={14} />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <h3 className="text-lg font-medium leading-snug mb-3 text-white">
-                    {(selectedNode || hoveredNode)!.data.label}
-                  </h3>
-
-                  {(selectedNode || hoveredNode)!.data.verification_reason && (
-                    <div className="bg-black/40 p-3 rounded-lg border border-white/5 text-sm text-zinc-300">
-                      <span className="text-xs font-bold text-zinc-400 block mb-1 uppercase">
-                        Analysis
-                      </span>
-                      {(selectedNode || hoveredNode)!.data.verification_reason}
-                    </div>
-                  )}
-
-                  {(selectedNode || hoveredNode)!.data.source_span && (
-                    <div className="mt-3 pt-3 border-t border-white/10 text-xs text-zinc-500 italic">
-                      "{(selectedNode || hoveredNode)!.data.source_span}"
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Node Actions (Hide in Edit Mode) */}
-              {!isEditing && (
-                <div className="mt-4 flex gap-2 justify-end">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const active = selectedNode || hoveredNode;
-                      if (!active) return;
-
-                      // If it's a hover interaction, lock it first? Or just allow editing?
-                      // Let's force select properly to edit.
-                      setSelectedNode(active);
-                      setEditValue(active.data.label);
-                      setIsEditing(true);
-                    }}
-                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-colors"
-                    title="Edit Text"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (
-                        confirm(
-                          "Delete this node? Dependents will be orphaned.",
-                        )
-                      ) {
-                        const active = selectedNode || hoveredNode;
-                        if (active) {
-                          handleDeleteNode(active.id);
-                          setSelectedNode(null); // Clear selection after delete
-                        }
-                      }
-                    }}
-                    className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-400 transition-colors"
-                    title="Delete Node"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
