@@ -36,7 +36,7 @@ const Guide = ({ isOpen, onClose }: GuideProps) => {
         <div className="flex-1 flex overflow-hidden">
           {/* Left Panel: Intro */}
           <div className="w-1/3 p-10 bg-gradient-to-br from-indigo-950/50 to-zinc-950 flex flex-col justify-center border-r border-zinc-900">
-            <div className="mb-6 p-3 bg-indigo-600 w-fit rounded-xl shadow-lg shadow-indigo-500/20">
+            <div className="mb-6 p-3 bg-gradient-to-br from-amber-500 to-amber-600 w-fit rounded-xl shadow-lg shadow-amber-500/20">
               <svg
                 width="32"
                 height="32"
@@ -44,7 +44,7 @@ const Guide = ({ isOpen, onClose }: GuideProps) => {
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
-                className="text-white"
+                className="text-mistral-bg"
               >
                 <circle cx="4" cy="18" r="2" />
                 <circle cx="12" cy="6" r="2" />
