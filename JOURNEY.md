@@ -185,7 +185,34 @@ uv run scripts/test_web_search.py
 
 ---
 
-## 10. What's Next: Phase 3 (Fractal Reasoning)
+## 11. Phase 2.5: UI Polish & Factual Grounding
+As the "Agentic Shift" stabilized, we moved into a refinement phase focused on UX and reliability.
+
+### The "Double-Card" (Ghost) Glitch
+**Problem:** Upon implementing a new persistent `NodeDetailsCard` component, users observed two cards rendering simultaneously: the new component and the old legacy inline popup.
+**Cause:** Duplicate state logic. We had the new component in the `ReactFlow` canvas *and* a legacy conditional `div` block at the bottom of `App.tsx` both listening to the same `selectedNode` state.
+**Fix:** Removed over 200 lines of redundant UI logic in `App.tsx`, delegating all detail rendering to the standalone `NodeDetailsCard` component. This unified the hover and selection interactions.
+
+### Environment Persistence (The ".env" Loop)
+**Problem:** In the development environment, API keys were intermittently failing to load or using stale values, leading to `400 Bad Request` errors from Mistral.
+**Fix:** We discovered that `load_dotenv()` was sometimes failing to find the file or was being overridden by stale environment variables. We refactored the backend to:
+1. Use an **absolute path** for the `.env` file location.
+2. Use the `override=True` flag to ensure the defined keys always take precedence over the system environment.
+
+### Visual Transparency: "Web Enhanced"
+**Problem:** Users couldn't always tell when a claim was verified by the web search agent versus internal logic.
+**Fix:** Introduced a "Web Enhanced" badge (Globe icon) in the detail card. It only appears when valid citations are retrieved, providing clear factual grounding at a glance.
+
+### Debugging Citations
+**Challenge:** Citations weren't appearing consistently, making verification feel opaque.
+**Action:**
+1. Created `scripts/debug_agent_raw.py` to dump the raw JSON outputs of Mistral's Beta Agents API.
+2. Hardened the `AgentService` parsing logic to handle both `ToolReferenceChunk` objects and generic URL pattern fallbacks.
+3. Added backend logging to track the "Yield" (how many sources found per claim) for ongoing observability.
+
+---
+
+## 12. What's Next: Phase 3 (Fractal Reasoning)
 
 **Goal:** Allow users to "drill down" into complex claims.
 *   Double-click a claim to trigger recursive analysis.

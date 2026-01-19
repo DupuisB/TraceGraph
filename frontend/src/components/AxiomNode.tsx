@@ -12,7 +12,7 @@ const AxiomNode = ({ data }: NodeProps) => {
       case "refuted":
         return "bg-rose-950/50 border-rose-500 shadow-rose-500/20";
       case "needs_review":
-        return "bg-amber-950/50 border-amber-500 border-dashed shadow-amber-500/20";
+        return "bg-slate-900/50 border-slate-400 border-dashed shadow-slate-500/20";
       default:
         return "bg-slate-900 border-purple-400/50";
     }
@@ -25,7 +25,7 @@ const AxiomNode = ({ data }: NodeProps) => {
       case "refuted":
         return <XCircle size={14} className="text-rose-400" />;
       case "needs_review":
-        return <Eye size={14} className="text-amber-400" />;
+        return <Eye size={14} className="text-slate-400" />;
       default:
         return <Loader2 size={14} className="text-purple-400 animate-spin" />;
     }

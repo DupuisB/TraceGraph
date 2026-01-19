@@ -25,7 +25,7 @@ const NodeDetailsCard = ({ node, onClose }: NodeDetailsCardProps) => {
       case "refuted":
         return "text-rose-400 bg-rose-950/30 border-rose-500/50";
       case "needs_review":
-        return "text-amber-400 bg-amber-950/30 border-amber-500/50";
+        return "text-slate-400 bg-slate-900/30 border-slate-500/50";
       default:
         return "text-zinc-400 bg-zinc-800/50 border-zinc-700/50";
     }

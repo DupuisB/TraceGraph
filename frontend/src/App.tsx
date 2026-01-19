@@ -311,10 +311,28 @@ const Flow = () => {
       {/* Sidebar / Input Panel */}
       <div className="w-[400px] border-r border-zinc-800 bg-zinc-950/50 backdrop-blur-xl flex flex-col p-6 z-10 shadow-2xl">
         <div className="flex items-center gap-3 mb-8">
-          <div className="p-2 bg-indigo-600 rounded-lg">
-            <Layers size={24} />
+          <div className="p-2 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg shadow-lg shadow-amber-500/20">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="text-mistral-bg"
+            >
+              <circle cx="4" cy="18" r="2" />
+              <circle cx="12" cy="6" r="2" />
+              <circle cx="20" cy="18" r="2" />
+              <path d="M4 18L12 6L20 18" />
+            </svg>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">TraceGraph</h1>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">TraceGraph</h1>
+            <p className="text-[10px] text-zinc-500 tracking-wide">
+              Graph Argument Decomposition
+            </p>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col gap-4">
@@ -364,7 +382,7 @@ const Flow = () => {
         </div>
 
         <div className="mt-8 pt-8 border-t border-zinc-900 text-[10px] text-zinc-500 flex justify-between">
-          <span>Mistral TraceGraph v1.0</span>
+          <span>TraceGraph v1.0</span>
           <span>Powered by Mistral Large</span>
         </div>
       </div>

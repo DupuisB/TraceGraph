@@ -1,6 +1,6 @@
-# Mistral TraceGraph 🕸️
+# TraceGraph 🕸️
 
-### *Deconstructing LLM Reasoning into Verifiable Logic Topologies*
+### *Graph Argument Decomposition Engine*
 
 ![Demo Placeholder](https://placehold.co/800x400?text=TraceGraph+Demo:+Logic+Auditing+in+Action)
 
@@ -10,9 +10,9 @@
 
 **The Problem:** Large Language Models excel at generating fluid prose, but this fluency acts as a "smooth veneer" that hides logical fallacies. For high-stakes domains (Legal, Audit, Forensic Analysis), a linear chat interface is insufficient. It is impossible to verify a 10-page argument when it is presented as a single stream of text. We call this **"Linear Obfuscation."**
 
-**The Solution:** **Mistral TraceGraph** is an *Argument-as-a-Graph (AaaG)* engine. It forces the LLM to break its own reasoning into atomic units (nodes) and dependency relationships (edges). This transformation exposes the topology of the argument, making it auditable, verifiable, and structurally rigorous.
+**The Solution:** **TraceGraph** is an *Argument-as-a-Graph (AaaG)* engine. It forces the LLM to break its own reasoning into atomic units (nodes) and dependency relationships (edges). This transformation exposes the topology of the argument, making it auditable, verifiable, and structurally rigorous.
 
-> **Why Mistral?** We chose the Mistral ecosystem for its unique "Model Specialization" capabilities—using **Mistral Large** for high-fidelity architectural reasoning and **Mistral Agents** for autonomous research.
+> **Powered by Mistral:** We chose the Mistral ecosystem for its unique "Model Specialization" capabilities—using **Mistral Large** for high-fidelity architectural reasoning and **Mistral Agents** for autonomous research.
 
 ---
 
