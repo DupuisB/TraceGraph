@@ -37,7 +37,20 @@ const Guide = ({ isOpen, onClose }: GuideProps) => {
           {/* Left Panel: Intro */}
           <div className="w-1/3 p-10 bg-gradient-to-br from-indigo-950/50 to-zinc-950 flex flex-col justify-center border-r border-zinc-900">
             <div className="mb-6 p-3 bg-indigo-600 w-fit rounded-xl shadow-lg shadow-indigo-500/20">
-              <Layers size={32} className="text-white" />
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-white"
+              >
+                <circle cx="4" cy="18" r="2" />
+                <circle cx="12" cy="6" r="2" />
+                <circle cx="20" cy="18" r="2" />
+                <path d="M4 18L12 6L20 18" />
+              </svg>
             </div>
             <h2 className="text-3xl font-bold text-white mb-4">
               Master Your Arguments
