@@ -1,6 +1,10 @@
 # TraceGraph 🕸️
 
-> **Disclaimer:** This project is currently a WIP and is not ready for production use. One key limitation (among others, see [Limitations](#limitations)) is that, if web search is not enabled, it considers the raw text as a source of truth when it comes to factual claims.
+![Status](https://img.shields.io/badge/Status-Agentic_Beta-blue)
+![Stack](https://img.shields.io/badge/Tech-Mistral_Large_%7C_React_Flow-F59E0B)
+![Focus](https://img.shields.io/badge/Domain-Forensic_Analysis-slate)
+
+> **Disclaimer:** This project is currently a WIP, more features are coming. (see [Limitations](#limitations) for more details)
 
 ### *Graph Argument Decomposition Engine*
 
@@ -75,9 +79,9 @@ A key constraint in GenAI products is the "Intelligence-Cost Tradeoff."
 
 ## 4. Limitations
 
--   **Web Search:** If web search is not enabled, it considers the raw text as a source of truth when it comes to factual claims.
+-   **Web Search:** If web search is not enabled, **it considers the raw text as a source of truth** when it comes to factual claims. This is how the tool is supposed to work, but it is important to be aware of this limitation.
 -   **Verifier:** The verifier agent, as currently implemented, verifies the claims one by one. It does not consider the connected argument, and only checks the claim in isolation.
-> The **Verifier** issue means that
+> The **Verifier** issue means that the tool **does not decide what is true or false**, but rather **presents the evidence for and against** each claim present in the text. One claim may be supported by one source, but contradicted by another.
 
 ---
 
