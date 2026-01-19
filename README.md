@@ -1,5 +1,7 @@
 # TraceGraph 🕸️
 
+> **Disclaimer:** This project is currently a WIP and is not ready for production use. One key limitation (among others, see [Limitations](#limitations)) is that, if web search is not enabled, it considers the raw text as a source of truth when it comes to factual claims.
+
 ### *Graph Argument Decomposition Engine*
 
 ![Demo](./media/demo.gif)
@@ -12,7 +14,7 @@
 
 **The Solution:** **TraceGraph** is an *Argument-as-a-Graph (AaaG)* engine. It leverages LLMs to break down arguments into atomic units (nodes) and dependency relationships (edges). This transformation exposes the topology of an argument, making it auditable, verifiable, and structurally rigorous.
 
-> **What this product is:** As of the current iteration, this products acts as a **reasoning help**. An example use case would be to paste an argumentative text (editorial, press release, etc.) and see it broken down into atomic claims. This allows users to better understand the logic of an argument and verify its claims.
+> **What this product is:** As of the current iteration, this products acts as a **reasoning help**. An example use case would be to paste an argumentative text (editorial, press release, etc.) and see it broken down into atomic claims. The tool will then attempt to verify the claims individually, and will connect the ones that condradict and support each other. This allows users to better understand the logic of an argument. Note that the tool **does not decide what is true or false**, but rather **presents the evidence for and against** each claim present in the text.
 
 ---
 
@@ -71,7 +73,15 @@ A key constraint in GenAI products is the "Intelligence-Cost Tradeoff."
 
 ---
 
-## 4. Installation & Setup
+## 4. Limitations
+
+-   **Web Search:** If web search is not enabled, it considers the raw text as a source of truth when it comes to factual claims.
+-   **Verifier:** The verifier agent, as currently implemented, verifies the claims one by one. It does not consider the connected argument, and only checks the claim in isolation.
+> The **Verifier** issue means that
+
+---
+
+## 5. Installation & Setup
 
 ### Prerequisites
 *   **Python 3.12+** (using `uv`)
