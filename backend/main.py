@@ -1,8 +1,9 @@
 import asyncio
 import os
+from pathlib import Path
 from typing import Annotated
 
-from dotenv import find_dotenv, load_dotenv
+from dotenv import load_dotenv
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,7 +18,9 @@ from app.services.mistral_service import MistralService
 # V2: Import orchestrator and agent service
 from app.services.verification_orchestrator import VerificationOrchestrator
 
-load_dotenv(find_dotenv())
+# Explicitly load .env from project root to ensure updates are picked up
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(env_path, override=True)
 
 app = FastAPI(title="TraceGraph API")
 
