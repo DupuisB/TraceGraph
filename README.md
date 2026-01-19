@@ -1,6 +1,7 @@
 <div align="center">
   <h1>TraceGraph 🕸️</h1>
   <h3><i>Graph Argument Decomposition Engine</i></h3>
+  <h5><i>Mistral AI Internship Application Project</i></h5>
 
   <p>
     <a href="https://oyster-app-a6yld.ondigitalocean.app">
