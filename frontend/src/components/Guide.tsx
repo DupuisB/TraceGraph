@@ -4,7 +4,6 @@ import {
   XCircle,
   AlertCircle,
   Share2,
-  Layers,
   Lock,
 } from "lucide-react";
 
