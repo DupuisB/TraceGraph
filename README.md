@@ -18,7 +18,7 @@
 
 ## 2. System Architecture
 
-We employ a **"Split-Brain" Architecture** to optimize for both structural integrity and verification speed.
+I employ a **"Split-Brain" Architecture** to optimize for both structural integrity and verification speed.
 
 ```mermaid
 graph TD
@@ -60,14 +60,14 @@ Standard RAG systems are limited by their embedding retrieval window. I solve th
 *   **The Result:** Users see **"Web Enhanced"** cards with clickable citations, ensuring the graph is grounded in current reality, not just training data.
 
 ### Cognitive Bias Design
-We do not build typical "Fact Checkers." Research shows that binary "True/False" labels on uncertain claims often fail.
+I did not keep a typical "Fact Checkers." Research shows that binary "True/False" labels on uncertain claims often fail.
 *   **The Backfire Effect:** Citing *DeVerna et al. (2024)*, we know that labeling ambiguous claims as "Uncertain" paradoxically *increases* belief in misinformation.
 *   **My Decision:** I removed all "Warning/Uncertain" badges. Instead, ambiguous nodes default to a neutral, clinical **"Needs Human Review"** state. This lowers cognitive defense mechanisms and encourages the user to engage with the evidence.
 
 ### Cost-Latency
 A key constraint in GenAI products is the "Intelligence-Cost Tradeoff."
-*   **Architect:** We use **Mistral Large** only once per session (for graph construction), where high reasoning capability is non-negotiable.
-*   **Auditors:** We use **Mistral Small** for parallelized internal consistency checks. This reduces verification costs, while maintaining high throughput via `asyncio` parallelization.
+*   **Architect:** I use **Mistral Large** only once per session (for graph construction), where high reasoning capability is non-negotiable.
+*   **Auditors:** I use **Mistral Small** for parallelized internal consistency checks. This reduces verification costs, while maintaining high throughput via `asyncio` parallelization.
 
 ---
 
