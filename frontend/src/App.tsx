@@ -16,7 +16,6 @@ import {
   Send,
   Loader2,
   Share2,
-  Layers,
   Plus,
   Minus,
   Maximize,
@@ -30,11 +29,16 @@ import EvidenceNode from "./components/EvidenceNode";
 import AxiomNode from "./components/AxiomNode";
 import Guide from "./components/Guide";
 import NodeDetailsCard from "./components/NodeDetailsCard";
+import CustomEdge from "./components/CustomEdge";
 
 const nodeTypes = {
   claim: ClaimNode,
   evidence: EvidenceNode,
   axiom: AxiomNode,
+};
+
+const edgeTypes = {
+  custom: CustomEdge,
 };
 
 // V2: Citation from web search
@@ -289,13 +293,10 @@ const Flow = () => {
       id: `e-${idx}`,
       source: e.source,
       target: e.target,
-      type: "smoothstep",
+      type: "custom",
       label: e.type,
       animated: true,
-      style: {
-        stroke: e.type === "contradicts" ? "#ef4444" : "#6366f1",
-        strokeWidth: 2,
-      },
+      data: { weight: e.weight },
     }));
 
     // Apply ELK Layout
@@ -400,6 +401,7 @@ const Flow = () => {
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
           fitView
           className="bg-zinc-950"
           panOnDrag={!isLocked}

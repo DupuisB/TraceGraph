@@ -2,7 +2,7 @@
 
 ### *Graph Argument Decomposition Engine*
 
-![Demo Placeholder](https://placehold.co/800x400?text=TraceGraph+Demo:+Logic+Auditing+in+Action)
+![Demo](./media/demo.gif)
 
 ---
 
