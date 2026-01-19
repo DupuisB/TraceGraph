@@ -1,9 +1,15 @@
-import { X, ExternalLink } from "lucide-react";
+import { X, ExternalLink, Globe } from "lucide-react";
 import { type Node } from "reactflow";
 
 interface NodeDetailsCardProps {
   node: Node | null;
   onClose: () => void;
+}
+
+interface Citation {
+  title: string;
+  url: string;
+  source: string;
 }
 
 const NodeDetailsCard = ({ node, onClose }: NodeDetailsCardProps) => {
@@ -38,6 +44,12 @@ const NodeDetailsCard = ({ node, onClose }: NodeDetailsCardProps) => {
           <span className="text-xs font-mono text-zinc-500 uppercase">
             {node.type}
           </span>
+          {data.citations && data.citations.length > 0 && (
+            <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
+              <Globe size={10} />
+              Web Enhanced
+            </span>
+          )}
         </div>
         <button
           onClick={onClose}
@@ -88,7 +100,7 @@ const NodeDetailsCard = ({ node, onClose }: NodeDetailsCardProps) => {
                   Sources
                 </span>
                 <div className="grid gap-2">
-                  {data.citations.map((citation: any, i: number) => (
+                  {data.citations.map((citation: Citation, i: number) => (
                     <a
                       key={i}
                       href={citation.url}

@@ -159,6 +159,8 @@ Search the web and provide your verdict as JSON only."""
                             if text:
                                 final_text += text
 
+            print(f"[AgentService] Extracted {len(citations)} citations for claim")
+
             # Parse JSON verdict from response text
             try:
                 json_start = final_text.find("{")
