@@ -129,6 +129,17 @@ A key constraint in GenAI products is the "Intelligence-Cost Tradeoff."
     npm install
     ```
 
+### Configuration & Deployment
+
+**Environment Variables**
+
+| Variable | Description | Default | Location |
+| :--- | :--- | :--- | :--- |
+| `MISTRAL_API_KEY` | Required for LLM & Agents | - | Backend |
+| `VITE_API_URL` | URL of the deployed backend | `http://localhost:8000` | Frontend (Build Time) |
+
+**Deployment Note:** When deploying the Frontend, ensure `VITE_API_URL` is set to your production backend URL (e.g., `https://your-api.com`). This must be set at **build time**.
+
 4.  **Run the System**
     *   Backend: `uv run fastapi dev backend/main.py`
     *   Frontend: `npm run dev`

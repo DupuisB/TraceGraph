@@ -198,7 +198,7 @@ const Flow = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/analyze", {
+      const response = await fetch(`${API_BASE_URL}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -230,7 +230,7 @@ const Flow = () => {
   const pollGraphStatus = (graphId: string) => {
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`http://localhost:8000/graph/${graphId}`);
+        const res = await fetch(`${API_BASE_URL}/graph/${graphId}`);
         if (!res.ok) return;
         const data = await res.json();
 
@@ -469,6 +469,8 @@ const Flow = () => {
 };
 
 import { getLayoutedElements } from "./utils/layout";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const EXAMPLE_TEXT = `Market Briefing: The AI Hardware Landscape (Q1 2025)
 
