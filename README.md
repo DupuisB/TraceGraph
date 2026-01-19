@@ -1,8 +1,8 @@
 # TraceGraph 🕸️
 
-![Status](https://img.shields.io/badge/Status-Agentic_Beta-blue)
+![Status](https://img.shields.io/badge/Status-MVP-blue)
 ![Stack](https://img.shields.io/badge/Tech-Mistral_Large_%7C_React_Flow-F59E0B)
-![Focus](https://img.shields.io/badge/Domain-Forensic_Analysis-slate)
+![Focus](https://img.shields.io/badge/Domain-Argument_Analysis-slate)
 
 > **Disclaimer:** This project is currently a WIP, more features are coming. (see [Limitations](#limitations) for more details)
 
