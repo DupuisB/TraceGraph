@@ -1,64 +1,64 @@
 # Mistral TraceGraph 🕸️
 
-**TraceGraph** is an "Argument-as-a-Graph" (AaaG) visualization tool that transforms linear LLM outputs into verifiable, structured logic topologies.
+**TraceGraph** is an "Argument-as-a-Graph" (AaaG) visualization tool that transforms linear LLM outputs into verifiable, structured logic topologies. It combines advanced orchestration with real-time agentic research to audit consistency and factual grounding.
 
-![Graph Visualization](https://placehold.co/800x400?text=Graph+Visualization+Placeholder)
+---
 
 ## 💡 Product Philosophy: The "Logic Auditor"
 
-> **Pivot: From "Fact Checker" to "Logic & Consistency Auditor"**
+TraceGraph is built on a "Safety-First" architecture, grounded in recent research into AI cognitive biases:
 
-Based on recent research (DeVerna et al. 2024, *Frontiers in AI*), we identified key risks in AI-assisted verification:
-1.  **The Backfire Effect:** Labeling claims as "Uncertain" explicitly increases user belief in misinformation.
-    *   *TraceGraph Solution:* We removed "Uncertain" badges. Ambiguous claims now default to a neutral **"Needs Human Review"** state (Blue/Dashed UI), prioritizing safety over false confidence.
-2.  **Hallucinated Explanations:** LLMs often give correct verdicts with made-up reasons.
-    *   *TraceGraph Solution:* Our prompt forces the model to **extract exact quotes** from the source text before rendering a verdict. No quote = No verification.
-3.  **Stale Knowledge:** Without RAG, LLMs fail at checking external facts (e.g., GDP data).
-    *   *TraceGraph Solution:* We strictly scope the MVP to **Internal Consistency Checking**—verifying if the argument holds water based *only* on the provided text.
+1.  **Neutral Communication:** Based on *DeVerna et al. (2024)*, we replaced ambiguous labels (like "Uncertain") with a clinical **"Needs Review"** state to prevent the "Backfire Effect" on users.
+2.  **Grounded Reasoning:** To combat hallucinated explanations, our system mandates **Exact Quote Extraction** from source material. No evidence = No verdict.
+3.  **Agentic Verification:** We solve the "Stale Knowledge" problem by routing factual claims to an **Autonomous Mistral Agent** capable of live web research.
+
+---
 
 ## 🚀 Key Features
 
+### Agentic Verification Loop 🌐
+- **Fact vs. Logic Routing:** Automatically classifies claims. Definitional logic stays internal; factual claims (e.g., historical dates, current events) are dispatched to Mistral's **Native Web Search**.
+- **Source Citations:** Real-time retrieval of authoritative web sources, displayed directly in the UI as clickable "Web Enhanced" badges.
+
+### Premium UX & Interaction 🎮
+- **Glassmorphic Interface:** A modern, high-contrast UI using backdrop-blur effects and custom Tailwind design tokens.
+- **Unified Details Card:** One persistent "Sticky" card in the bottom-right handles both **Hover (Preview)** and **Selection (Lock)** interactions.
+- **Smart Layout:** Powered by the **Eclipse Layout Kernel (ELK)**, ensuring complex graphs remain readable and organized.
+
 ### Optimized Model Orchestration 🧠
-*   **Architect (Mistral Large):** Selected for high complex reasoning and strict JSON adherence to construct reliable DAGs.
-*   **Auditor (Mistral Small):** Selected for low-latency, high-throughput verification loops to minimize cost while maximizing coverage.
-*   **Strict JSON Schema:** Enforces a rigid graph structure using Mistral's JSON mode for reliable rendering.
-*   **Interactive Visualization:** Powered by **React Flow** and **ELK Layout engine** for automatic, hierarchical graph organization.
+- **Architect (Mistral Large):** High-fidelity reasoning for graph construction.
+- **Auditor (Mistral Small):** Fast, low-latency loops for internal logic verification.
+- **Fact Auditor (Mistral Agent):** Dedicated researcher for external grounding.
 
-### Phase B: The Auditor 🕵️‍♂️
-*   **Async Verification:** Once the graph is built, background tasks dispatch verification requests to **Mistral Small**.
-*   **Live Status Updates:** Real-time visual feedback:
-    *   🟢 **Verified:** AI confirms the claim is supported by the source.
-    *   🔴 **Refuted:** AI detects a contradiction.
-    *   🟡 **Uncertain:** Logic is ambiguous.
+---
 
-### Phase C: Interaction Layer 🎮
-*   **Edit Nodes:** Click any node to modify its text directly in the UI.
-*   **Smart Deletion:** Remove nodes and watch dependency propagation—orphan nodes are visually dimmed to preserve context.
-*   **Sticky Selection:** Click to lock focus on a node for detailed analysis.
-
-## 🏗️ System Logic
+## 🏗️ System Architecture
 
 ```mermaid
 graph TD
     User[User Input] -->|POST /analyze| API[FastAPI Backend]
 
-    subgraph "Phase A: Construction (Mistral Large)"
+    subgraph "Construction Layer"
         API -->|Architect Prompt| Large[Mistral Large]
-        Large -->|JSON Graph| API
+        Large -->|JSON DAG| API
     end
 
-    API -->|Return Graph Structure| UI[React Frontend]
+    API -->|Return Graph| UI[React Frontend]
 
-    subgraph "Phase B: Verification (Mistral Small)"
-        API -->|Background Task| Queue[Async Queue]
-        Queue -->|Parallel Requests| Small[Mistral Small]
-        Small -->|Verified/Refuted| Queue
+    subgraph "Assurance Layer (Parallel)"
+        API --> Router[Claim Router]
+        Router -->|Logic| Small[Mistral Small]
+        Router -->|Fact| Agent[Mistral Web Agent]
+        
+        Small -->|Verdict| Store[Graph Store]
+        Agent -->|Verdict + Citations| Store
     end
 
-    Queue -.->|Polling Updates| UI
+    Store -.->|Polling Updates| UI
 
-    style Large fill:#BD34FE,stroke:#fff,color:#fff
-    style Small fill:#F59E0B,stroke:#fff,color:#fff
+    style Large fill:#6366f1,stroke:#fff,color:#fff
+    style Small fill:#10b981,stroke:#fff,color:#fff
+    style Agent fill:#ec4899,stroke:#fff,color:#fff
 ```
 
 ---
@@ -66,83 +66,68 @@ graph TD
 ## 🛠️ Tech Stack
 
 ### Backend
-*   **Python 3.12+** managed by `uv`.
-*   **FastAPI**: High-performance async API.
-*   **Mistral AI SDK**: Intelligence engine (`mistral-large-latest`, `mistral-small-latest`).
-*   **Pytest**: Integration testing with mocked services.
+- **Python 3.12+** (managed by `uv`)
+- **FastAPI**: High-performance asynchronous delivery
+- **Mistral SDK**: Beta Agents & Conversations API integration
+- **Pytest**: Comprehensive suite with mocked service layers
 
 ### Frontend
-*   **React 19** + **Vite**.
-*   **React Flow**: Canvas-based graph rendering.
-*   **elkjs**: Advanced graph layout algorithms.
-*   **Tailwind CSS**: Glassmorphism styling and responsive design.
-*   **Vitest**: Unit testing.
+- **React 19** + **Vite**
+- **React Flow**: Canvas-based logic visualization
+- **elkjs**: Orthogonal and layered graph layouting
+- **Tailwind CSS**: Custom utility-first styling
 
 ---
 
 ## ⚡ Getting Started
 
 ### Prerequisites
-*   **Python**: Install `uv` (modern Python package manager).
-*   **Node.js**: Install `npm`.
-*   **Mistral API Key**: Get one from the [Mistral Console](https://console.mistral.ai/).
+- **Python**: Install [uv](https://github.com/astral-sh/uv).
+- **Node.js**: Modern LTS version.
+- **Mistral API Key**: Available at [console.mistral.ai](https://console.mistral.ai/).
 
-### Installation
+### Installation & Setup
 
-1.  **Clone the Repo**
+1.  **Clone the Repository**
     ```bash
     git clone https://github.com/DupuisB/TraceGraph.git
     cd TraceGraph
     ```
 
-2.  **Setup Backend**
+2.  **Initialize Backend**
     ```bash
     cd backend
     uv sync
-    # Create .env file
-    echo "MISTRAL_API_KEY=your_key_here" > .env
+    # Add your key to .env
+    echo 'MISTRAL_API_KEY="your-key-here"' > .env
     ```
 
-3.  **Setup Frontend**
+3.  **Initialize Frontend**
     ```bash
     cd ../frontend
     npm install
     ```
 
-### Running the App
+### Execution
 
-Run both servers in separate terminals:
+Run the development servers:
 
-**Backend (Port 8000)**
-```bash
-# From root
-uv run fastapi dev backend/main.py
-```
+- **Backend**: `uv run fastapi dev backend/main.py` (Port 8000)
+- **Frontend**: `npm run dev` (Port 5173)
 
-**Frontend (Port 5173)**
-```bash
-# From root
-cd frontend
-npm run dev
-```
-
-Open [http://localhost:5173](http://localhost:5173) to start using TraceGraph!
-
----
-
-## 🧪 Testing & Quality
-
-We enforce code quality via **pre-commit hooks** and **GitHub Actions**.
-
-### Manually Running Tests
-*   **Backend:** `uv run pytest`
-*   **Frontend:** `cd frontend && npm test`
-*   **Linting:** `uv run ruff check` (Backend) / `npm run lint` (Frontend)
+Access the dashboard at `http://localhost:5173`.
 
 ---
 
 ## 🛣️ Roadmap
 
-*   [x] **MVP:** Closed-context analysis (Paste Text -> Graph).
-*   [ ] **V2:** RAG Integration (Verify against external docs).
-*   [ ] **V2:** Comparison Mode (Mistral vs GPT logic diff maps).
+- [x] **Phase 1: Foundation**: Parallel reasoning and quote-grounded verification.
+- [x] **Phase 2: Agentic Shift**: Integration with Mistral Agents and live Web Search.
+- [x] **Phase 2.5: UI Polish**: Premium "Glass" look and unified interaction model.
+- [ ] **Phase 3: Fractal Reasoning**: Double-click to expand claims into sub-graphs.
+- [ ] **Phase 4: Collaborative Audit**: Multi-user logic review sessions.
+
+---
+
+## 🧪 Quality Assurance
+We maintain strict quality standards via **Pre-commit Hooks** (Ruff, Pyright, ESLint, Prettier) and **GitHub Actions** CI/CD pipelines.
