@@ -1,14 +1,29 @@
-# TraceGraph 🕸️
+<div align="center">
+  <h1>TraceGraph 🕸️</h1>
+  <h3><i>Graph Argument Decomposition Engine</i></h3>
 
-![Status](https://img.shields.io/badge/Status-MVP-blue)
-![Stack](https://img.shields.io/badge/Tech-Mistral_Large_%7C_React_Flow-F59E0B)
-![Focus](https://img.shields.io/badge/Domain-Argument_Analysis-slate)
+  <p>
+    <a href="https://oyster-app-a6yld.ondigitalocean.app">
+      <img src="https://img.shields.io/badge/LIVE_DEMO-Click_Here-success?style=for-the-badge&logo=vercel" alt="Live Demo" />
+    </a>
+  </p>
+  
+  <p>
+    <i>⚠️ Note: The live demo runs on limited Mistral API credits. If it fails, the quota may be exhausted.</i>
+  </p>
+
+  <div>
+    <img src="https://img.shields.io/badge/Status-MVP-blue" alt="Status" />
+    <img src="https://img.shields.io/badge/Tech-Mistral_Large_%7C_React_Flow-F59E0B" alt="Stack" />
+    <img src="https://img.shields.io/badge/Domain-Argument_Analysis-slate" alt="Focus" />
+  </div>
+
+  <br />
+
+  <img src="./media/demo.gif" alt="TraceGraph Demo" width="100%" />
+</div>
 
 > **Disclaimer:** This project is currently a WIP, more features are coming. (see [Limitations](#limitations) for more details)
-
-### *Graph Argument Decomposition Engine*
-
-![Demo](./media/demo.gif)
 
 ---
 

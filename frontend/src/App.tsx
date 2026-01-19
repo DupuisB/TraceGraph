@@ -22,6 +22,7 @@ import {
   Lock,
   Unlock,
   HelpCircle,
+  FileText,
 } from "lucide-react";
 
 import ClaimNode from "./components/ClaimNode";
@@ -337,9 +338,18 @@ const Flow = () => {
         </div>
 
         <div className="flex-1 flex flex-col gap-4">
-          <label className="text-sm font-medium text-zinc-400">
-            Input Context
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-zinc-400">
+              Input Context
+            </label>
+            <button
+              onClick={() => setText(EXAMPLE_TEXT)}
+              className="px-2 py-1 text-[10px] bg-zinc-900 border border-zinc-800 rounded-md text-zinc-400 hover:text-white hover:border-zinc-700 transition-all flex items-center gap-1.5"
+            >
+              <FileText size={10} />
+              Load Example
+            </button>
+          </div>
           <textarea
             className="flex-1 bg-zinc-900/50 border border-zinc-800 rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none placeholder:text-zinc-600 transition-all"
             placeholder="Paste your text here (e.g., a news article or reasoning chain)..."
@@ -459,6 +469,14 @@ const Flow = () => {
 };
 
 import { getLayoutedElements } from "./utils/layout";
+
+const EXAMPLE_TEXT = `Market Briefing: The AI Hardware Landscape (Q1 2025)
+
+The artificial intelligence sector continues to be driven by significant hardware constraints. NVIDIA remains the dominant player in the GPU market, capitalizing on its H100 tensor core architecture which has become the industry standard for training Large Language Models (LLMs). This market position is reinforced by their CUDA software moat, which locks developers into their ecosystem.
+
+However, competitive dynamics are shifting. In a surprising move last week, Apple announced it has acquired OpenAI for $700 billion, effectively ending its partnership with Microsoft. This acquisition aims to integrate ChatGPT directly into the iPhone 16's kernel, replacing Siri entirely by next month.
+
+Meanwhile, the open-source community is rallying around efficient inference. Mistral AI released "Mixtral 8x7B" in December 2023, a sparse mixture-of-experts model that outperforms Llama 2 70B on most benchmarks while using 6x fewer active parameters during inference. Analysts suggest this efficiency could reduce enterprise serving costs by 40% year-over-year.`;
 
 function App() {
   return (
