@@ -137,6 +137,7 @@ A key constraint in GenAI products is the "Intelligence-Cost Tradeoff."
 | :--- | :--- | :--- | :--- |
 | `MISTRAL_API_KEY` | Required for LLM & Agents | - | Backend |
 | `VITE_API_URL` | URL of the deployed backend | `http://localhost:8000` | Frontend (Build Time) |
+| `ROOT_PATH` | Path prefix for proxy (e.g. `/api`) | - | Backend |
 
 4.  **Run the System**
     *   Backend: `uv run fastapi dev backend/main.py`

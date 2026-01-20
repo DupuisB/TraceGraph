@@ -22,7 +22,10 @@ from app.services.verification_orchestrator import VerificationOrchestrator
 env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(env_path, override=True)
 
-app = FastAPI(title="TraceGraph API")
+app = FastAPI(
+    title="TraceGraph API",
+    root_path=os.getenv("ROOT_PATH", ""),
+)
 
 # Feature flag for web search (V2)
 ENABLE_WEB_SEARCH = os.getenv("ENABLE_WEB_SEARCH", "false").lower() == "true"
