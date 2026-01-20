@@ -1,6 +1,4 @@
-# TraceGraph Backend API 🛰️
-
-The TraceGraph backend is a FastAPI-powered service that handles argument decomposition and parallel logic auditing using Mistral AI's flagship models.
+# TraceGraph Backend API
 
 ## API Endpoints
 
@@ -15,9 +13,3 @@ The TraceGraph backend is a FastAPI-powered service that handles argument decomp
 When the server is running, you can access the interactive Swagger documentation and test the endpoints directly at:
 - `http://localhost:8000/docs`
 - `http://localhost:8000/redoc`
-
-## Key Implementation Details
-
-- **Orchestration**: Uses `Mistral Large` for structural decomposition (Architect) and `Mistral Small` / `Mistral Agents` for verification (Auditor).
-- **Asynchrony**: Leverages `asyncio` and FastAPI `BackgroundTasks` for non-blocking verification loops.
-- **Environment**: Managed via `uv` with strict Pydantic-based configuration.
